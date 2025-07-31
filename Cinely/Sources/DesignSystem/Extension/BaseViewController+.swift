@@ -10,6 +10,19 @@ import Design
 
 extension BaseViewController {
     func setDefaultBackground() {
-        self.view.backgroundColor = .black
+        self.view.backgroundColor = Color.black
+    }
+    
+    func setNavigationTint() {
+        self.navigationController?.navigationBar.tintColor = Color.green
+    }
+    
+    func setNavigationBackButton() {
+        navigationItem.backButtonTitle = ""
+    }
+    
+    @objc
+    func keyboardDismiss(_ sender: Any) {
+        self.view.endEditing(true)
     }
 }
