@@ -1,4 +1,5 @@
-<type>(<scope>): <subject>
+
+# <type>(<scope>): <subject>
 # 제목. 50자 내외의 명령형 문장.
 # 예: feat(login): 소셜 로그인 기능 추가
 
