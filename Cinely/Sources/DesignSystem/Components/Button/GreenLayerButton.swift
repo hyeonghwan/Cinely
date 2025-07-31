@@ -8,16 +8,22 @@
 import UIKit
 import Design
 
-final class GreenButton: BaseButton {
+final class GreenLayerButton: BaseButton {
     
     convenience init(title: String) {
         self.init(frame: .zero)
-        defer { self.setTitle(title, for: .normal) }
+        defer {
+            self.setAttributedTitle(NSAttributedString(
+                string: "시작하기",
+                attributes: [.font : Font.semiBold17 ]
+            ), for: .normal)
+        }
     }
     
     override func addAttributes() {
         self.backgroundColor = .clear
-        self.layer.cornerRadius = 12
+        self.setTitleColor(.systemGreen, for: .normal)
+        self.layer.cornerRadius = 21
         self.layer.borderWidth = 1
         self.layer.borderColor = UIColor.systemGreen.cgColor
     }
