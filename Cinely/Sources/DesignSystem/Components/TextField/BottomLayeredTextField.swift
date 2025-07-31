@@ -10,16 +10,19 @@ import UIKit
 final class BottomLayerTextField: UITextField {
     
     var btBorderHeight: CGFloat = 1
-    var btBorderColor: CGColor = UIColor.white.cgColor
+    var btBorderColor: CGColor = Color.white.cgColor
     
     private var bottomLayer: CALayer! = nil
     
-    override init(frame: CGRect) {
+    override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         self.textAlignment = .center
         if #available(iOS 17.0 ,*) {
             observeLayout()
         }
+        self.textAlignment = .left
+        self.font = Font.regular14
+        self.tintColor = Color.white
     }
     
     required init?(coder: NSCoder) {
@@ -31,9 +34,9 @@ final class BottomLayerTextField: UITextField {
         if bottomLayer == nil {
             bottomLayer = CAShapeLayer()
             bottomLayer.frame = CGRect(
-                x: 0.0,
+                x: -8,
                 y: self.bounds.height - btBorderHeight,
-                width: self.bounds.width,
+                width: self.bounds.width + 8.0,
                 height: btBorderHeight
             )
             bottomLayer.backgroundColor = btBorderColor
