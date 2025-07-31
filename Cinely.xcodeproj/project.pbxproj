@@ -14,7 +14,7 @@
 		172C9BD22E3B792200809254 /* Exceptions for "Cinely" folder in "Cinely" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 172C9BBF2E3B792100809254 /* Cinely */;
 		};
@@ -147,7 +147,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2JZ8QNS5D4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cinely/Info.plist;
+				INFOPLIST_FILE = Cinely/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -175,7 +175,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2JZ8QNS5D4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cinely/Info.plist;
+				INFOPLIST_FILE = Cinely/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
