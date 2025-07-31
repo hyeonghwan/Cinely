@@ -16,6 +16,7 @@ final class OnboardingViewController: BaseViewController {
     
     override func addAttributes() {
         setDefaultBackground()
+        setNavigationBackButton()
         
         self.onboardingImageView.setDefaultImage(image: UIImage(resource: ImageResource.splash))
         
@@ -65,6 +66,13 @@ final class OnboardingViewController: BaseViewController {
     }
     
     override func binding() {
-        
+        startButton.addTarget(self, action: #selector(moveToNicknameSettingVC(_:)), for: .touchUpInside)
+    }
+    
+    @objc
+    private func moveToNicknameSettingVC(_ sender: UIButton) {
+        let vc = NicknameSettingViewController()
+        vc.title = "닉네임 설정"
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
