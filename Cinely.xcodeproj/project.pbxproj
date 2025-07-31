@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		172C9BF72E3B820100809254 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BF62E3B820100809254 /* Kingfisher */; };
+		172C9BFA2E3B820F00809254 /* Design in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BF92E3B820F00809254 /* Design */; };
+		172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BFB2E3B820F00809254 /* HwanKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		172C9BC02E3B792100809254 /* Cinely.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cinely.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */,
+				172C9BFA2E3B820F00809254 /* Design in Frameworks */,
+				172C9BF72E3B820100809254 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +87,9 @@
 			);
 			name = Cinely;
 			packageProductDependencies = (
+				172C9BF62E3B820100809254 /* Kingfisher */,
+				172C9BF92E3B820F00809254 /* Design */,
+				172C9BFB2E3B820F00809254 /* HwanKit */,
 			);
 			productName = Cinely;
 			productReference = 172C9BC02E3B792100809254 /* Cinely.app */;
@@ -107,6 +119,10 @@
 			);
 			mainGroup = 172C9BB72E3B792100809254;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 172C9BC12E3B792100809254 /* Products */;
 			projectDirPath = "";
@@ -335,6 +351,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.5.0;
+			};
+		};
+		172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyeonghwan/hwan-kit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		172C9BF62E3B820100809254 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		172C9BF92E3B820F00809254 /* Design */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */;
+			productName = Design;
+		};
+		172C9BFB2E3B820F00809254 /* HwanKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */;
+			productName = HwanKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 172C9BB82E3B792100809254 /* Project object */;
 }
