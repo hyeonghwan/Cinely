@@ -14,7 +14,7 @@ final class GreenLayerButton: BaseButton {
         self.init(frame: .zero)
         defer {
             self.setAttributedTitle(NSAttributedString(
-                string: "시작하기",
+                string: title,
                 attributes: [.font : Font.semiBold17 ]
             ), for: .normal)
         }
@@ -25,6 +25,6 @@ final class GreenLayerButton: BaseButton {
         self.setTitleColor(.systemGreen, for: .normal)
         self.layer.cornerRadius = 21
         self.layer.borderWidth = 1
-        self.layer.borderColor = UIColor.systemGreen.cgColor
+        self.layer.borderColor = Color.green.cgColor
     }
 }
