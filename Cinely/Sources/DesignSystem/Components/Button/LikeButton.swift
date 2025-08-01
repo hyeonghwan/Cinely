@@ -12,7 +12,14 @@ final class LikeButton: BaseButton {
     
     override func addAttributes() {
         self.tintColor = Color.green
-        self.setImage(Icons.heart, for: .normal)
-        self.setImage(Icons.heartFill, for: .selected)
+        let normal = Icons.heart
+        let selected = Icons.heartFill
+        self.setImage(normal, for: .normal)
+        self.setImage(selected, for: .selected)
+        let pointSize: CGFloat = 20
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: pointSize)
+        var config = UIButton.Configuration.plain()
+        config.preferredSymbolConfigurationForImage = imageConfig
+        self.configuration = config
     }
 }
