@@ -12,7 +12,7 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
     private let movieImageView   = MovieImageView()
     private let titleLabel       = UILabel()
     private let descriptionLabel = UILabel()
-    private let heartButton      = UIButton()
+    private let heartButton      = LikeButton()
     
     override func addAttributes() {
         movieImageView.contentMode = .scaleAspectFill
@@ -28,10 +28,6 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
         descriptionLabel.textColor = Color.white
         descriptionLabel.font = Font.light14
         descriptionLabel.numberOfLines = 3
-        
-        heartButton.tintColor = Color.green
-        heartButton.setImage(Icons.heart, for: .normal)
-        heartButton.setImage(Icons.heartFill, for: .selected)
     }
     
     override func addChild() {
