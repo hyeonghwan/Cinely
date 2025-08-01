@@ -16,4 +16,8 @@ enum Icons {
     static let xmark =      UIImage(systemName: "xmark")
     static let magnifyingglass = UIImage(systemName: "magnifyingglass")
     static let calendar =   UIImage(systemName: "calendar")
+    static let popCorn =    UIImage(systemName: "popcorn")
+    static let forword =    UIImage(systemName: "chevron.forward")
+    static let film    =    UIImage(systemName: "film.stack")
+    static let personCircle = UIImage(systemName: "person.circle")
 }
