@@ -1,0 +1,24 @@
+{
+  "originHash" : "805bf74f0a760cb775102493eaf653f95f8dfb8d86b0b2b78eb6f23d9c533214",
+  "pins" : [
+    {
+      "identity" : "hwan-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hyeonghwan/hwan-kit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c6d72ec4ed5fafda3a914503737e520ee213b873"
+      }
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher",
+      "state" : {
+        "revision" : "2015fda791daa72c8058619545a593bf8c1dd59f",
+        "version" : "8.5.0"
+      }
+    }
+  ],
+  "version" : 3
+}

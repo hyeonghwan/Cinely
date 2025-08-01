@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		172C9BF72E3B820100809254 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BF62E3B820100809254 /* Kingfisher */; };
+		172C9BFA2E3B820F00809254 /* Design in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BF92E3B820F00809254 /* Design */; };
+		172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BFB2E3B820F00809254 /* HwanKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		172C9BC02E3B792100809254 /* Cinely.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cinely.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -14,7 +20,7 @@
 		172C9BD22E3B792200809254 /* Exceptions for "Cinely" folder in "Cinely" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 172C9BBF2E3B792100809254 /* Cinely */;
 		};
@@ -36,6 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */,
+				172C9BFA2E3B820F00809254 /* Design in Frameworks */,
+				172C9BF72E3B820100809254 /* Kingfisher in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +87,9 @@
 			);
 			name = Cinely;
 			packageProductDependencies = (
+				172C9BF62E3B820100809254 /* Kingfisher */,
+				172C9BF92E3B820F00809254 /* Design */,
+				172C9BFB2E3B820F00809254 /* HwanKit */,
 			);
 			productName = Cinely;
 			productReference = 172C9BC02E3B792100809254 /* Cinely.app */;
@@ -107,6 +119,10 @@
 			);
 			mainGroup = 172C9BB72E3B792100809254;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 172C9BC12E3B792100809254 /* Products */;
 			projectDirPath = "";
@@ -147,12 +163,12 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2JZ8QNS5D4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cinely/Info.plist;
+				INFOPLIST_FILE = Cinely/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -160,9 +176,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hyeonghwan.Cinely;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -175,12 +195,12 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2JZ8QNS5D4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Cinely/Info.plist;
+				INFOPLIST_FILE = Cinely/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -188,9 +208,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hyeonghwan.Cinely;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -335,6 +359,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.5.0;
+			};
+		};
+		172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyeonghwan/hwan-kit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		172C9BF62E3B820100809254 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		172C9BF92E3B820F00809254 /* Design */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */;
+			productName = Design;
+		};
+		172C9BFB2E3B820F00809254 /* HwanKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */;
+			productName = HwanKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 172C9BB82E3B792100809254 /* Project object */;
 }
