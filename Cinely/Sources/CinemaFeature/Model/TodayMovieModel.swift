@@ -12,6 +12,8 @@ struct TodayMovieModel {
     let title:       String
     let description: String
     var favorite:      Bool
+    var genres:     [String] = ["액션", "SF", "모험", "애니메이션"]
+    var releaseDate: String = "2025. 04. 25"
     
     static var dummyList: [Self] {
         [
