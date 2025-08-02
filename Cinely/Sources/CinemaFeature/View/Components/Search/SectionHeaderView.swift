@@ -8,7 +8,7 @@
 import UIKit
 import Design
 
-final class RecentSearchHeader: BaseReusableView, CellIdentifialble {
+final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     private let sectionTitleLabel = UILabel()
     private var deleteButton = UIButton()
 
