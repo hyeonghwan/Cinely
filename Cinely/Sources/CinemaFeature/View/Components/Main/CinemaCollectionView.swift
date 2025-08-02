@@ -35,9 +35,9 @@ final class CinemaCollectionView: BaseCollectiionView {
                                                                                               heightDimension: .estimated(50)),
                                                                             elementKind: UICollectionView.elementKindSectionHeader,
                                                                             alignment: .top)
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(35))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(35))
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: itemSize.heightDimension)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
             let section = NSCollectionLayoutSection(group: group)
             section.interGroupSpacing = 12
@@ -52,9 +52,9 @@ final class CinemaCollectionView: BaseCollectiionView {
                                                                                               heightDimension: .estimated(50)),
                                                                             elementKind: UICollectionView.elementKindSectionHeader,
                                                                             alignment: .top)
-            let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(150), heightDimension: .fractionalHeight(1.0))
+            let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(150), heightDimension: .estimated(50))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            let groupSize = NSCollectionLayoutSize(widthDimension: .estimated(150), heightDimension: .estimated(35))
+            let groupSize = NSCollectionLayoutSize(widthDimension: .estimated(150), heightDimension: itemSize.heightDimension)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
             let section = NSCollectionLayoutSection(group: group)
             
@@ -72,7 +72,7 @@ final class CinemaCollectionView: BaseCollectiionView {
                                                                             alignment: .top)
             let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(UIScreen.main.bounds.height * 0.6))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.6), heightDimension: .estimated(UIScreen.main.bounds.height * 0.6))
+            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.6), heightDimension: itemSize.heightDimension)
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
             let section = NSCollectionLayoutSection(group: group)
             
@@ -111,8 +111,9 @@ final class CinemaCollectionView: BaseCollectiionView {
         func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
             if kind == UICollectionView.elementKindSectionHeader {
                 if indexPath.section == 1 || indexPath.section == 2 {
-                    let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: RecentSearchHeader.id, for: indexPath) as! RecentSearchHeader
+                    let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeaderView.id, for: indexPath) as! SectionHeaderView
                     header.setTitle(indexPath.section == 1 ? "최근검색어" : "오늘의 영화")
+                    header.setButtonTitle("전체삭제")
                     header.setDeleteButtonHidden(indexPath.section != 1)
                     return header
                 }
@@ -178,9 +179,9 @@ final class CinemaCollectionView: BaseCollectiionView {
         self.register(ProfileContainerCell.self,
                       forCellWithReuseIdentifier: ProfileContainerCell.id)
         
-        self.register(RecentSearchHeader.self,
+        self.register(SectionHeaderView.self,
                       forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                      withReuseIdentifier: RecentSearchHeader.id)
+                      withReuseIdentifier: SectionHeaderView.id)
         
         self.register(RecentSearchResultCell.self,
                       forCellWithReuseIdentifier: RecentSearchResultCell.id)
