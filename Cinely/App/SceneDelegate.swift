@@ -28,10 +28,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let profileSettingVC = ProfileSettingViewController()
         profileSettingVC.tabBarItem = UITabBarItem(title: "PROFILE", image: Icons.personCircle, tag: 1)
+        let profileSettingVNav = UINavigationController(rootViewController: profileSettingVC)
         
         let tabBarController = UITabBarController()
         tabBarController.tabBar.tintColor = Color.green
-        tabBarController.setViewControllers([cinemaNav, upcomingVCNav, profileSettingVC], animated: false)
+        tabBarController.setViewControllers([cinemaNav, upcomingVCNav, profileSettingVNav], animated: false)
         
         window.rootViewController = tabBarController
         
@@ -43,12 +44,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 final class UpcomingViewController: BaseViewController {
     
-    override func addAttributes() {
-        self.view.backgroundColor = Color.black
-    }
-}
-
-final class ProfileSettingViewController: BaseViewController {
     override func addAttributes() {
         self.view.backgroundColor = Color.black
     }
