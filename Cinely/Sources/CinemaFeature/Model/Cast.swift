@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+struct Cast {
+    let postImageView: String
+    let actorName: String
+    let roleName: String
+}
