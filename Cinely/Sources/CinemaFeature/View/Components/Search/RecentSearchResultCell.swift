@@ -31,15 +31,15 @@ final class RecentSearchResultCell: BaseCollectionViewCell, CellIdentifialble {
         
         self.backgroundColor = Color.white
         self.layer.borderWidth = 1
-        self.layer.cornerRadius = 17
+        self.layer.cornerRadius = 16
     }
     
     override func addLayout() {
         deleteButton.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         
         NSLayoutConstraint.activate([
-            searchLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor),
-            searchLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
+            searchLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 8),
+            searchLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -8),
             searchLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 8),
             searchLabel.trailingAnchor.constraint(equalTo: self.deleteButton.leadingAnchor, constant: -6),
             

@@ -1,4 +1,4 @@
-//
+gi//
 //  RecentSearchHeader.swift
 //  Cinely
 //
@@ -10,7 +10,7 @@ import Design
 
 final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     private let sectionTitleLabel = UILabel()
-    private var deleteButton = UIButton()
+    private(set) var deleteButton = UIButton()
 
     override func addChild() {
         self.addSubview(sectionTitleLabel)
@@ -20,9 +20,8 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     }
     
     override func addAttributes() {
-        sectionTitleLabel.font = Font.bold24
+        sectionTitleLabel.font = Font.bold21
         sectionTitleLabel.textColor = Color.white
-        deleteButton.setAttributedTitle(NSAttributedString(string: "전체 삭제", attributes: [.foregroundColor : Color.green]), for: .normal)
     }
     
     override func addLayout() {
@@ -38,6 +37,10 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     
     func setTitle(_ string: String) {
         sectionTitleLabel.text = string
+    }
+    
+    func setButtonTitle(_ string: String) {
+        deleteButton.setAttributedTitle(NSAttributedString(string: string, attributes: [.foregroundColor : Color.green]), for: .normal)
     }
     
     func setDeleteButtonHidden(_ bool: Bool) {
