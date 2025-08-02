@@ -18,7 +18,6 @@ final class NicknameDetailViewController: BaseViewController {
         setDefaultBackground()
         nicknameInputField.placeholder = "닉네임을 입력해주세요!"
         informationLabel.text = "닉네임에 숫자는 포함할 수 없어요"
-        informationLabel.textColor = .red
         informationLabel.font = Font.semiBold14
     }
     
