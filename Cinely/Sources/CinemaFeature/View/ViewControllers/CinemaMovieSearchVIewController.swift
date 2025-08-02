@@ -29,7 +29,15 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         searchController.searchBar.placeholder = "영화 제목을 검색해주세요"
         searchController.searchBar.searchTextField.font = Font.regular14
         self.navigationItem.title = "영화 검색"
+        navigationItem.hidesSearchBarWhenScrolling = false
         self.navigationItem.searchController = searchController
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.async {
+            self.navigationItem.searchController?.searchBar.becomeFirstResponder()
+        }
     }
     
     override func addChild() {
