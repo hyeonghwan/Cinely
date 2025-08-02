@@ -20,4 +20,6 @@ enum Icons {
     static let forword =    UIImage(systemName: "chevron.forward")
     static let film    =    UIImage(systemName: "film.stack")
     static let personCircle = UIImage(systemName: "person.circle")
+    static let information = UIImage(systemName: "info.circle")
+    static let checkmark = UIImage(systemName: "checkmark")
 }

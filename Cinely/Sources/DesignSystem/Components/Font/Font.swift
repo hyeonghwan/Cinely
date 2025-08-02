@@ -29,6 +29,7 @@ enum Font {
     
     static let bold14: UIFont = .systemFont(ofSize: 14, weight: .bold)
     static let bold17: UIFont = .systemFont(ofSize: 17, weight: .bold)
+    static let bold21: UIFont = .systemFont(ofSize: 21, weight: .bold)
     static let bold24: UIFont = .systemFont(ofSize: 24, weight: .bold)
     
     static var italic35: UIFont {
