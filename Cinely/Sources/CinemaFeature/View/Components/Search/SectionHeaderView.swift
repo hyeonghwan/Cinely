@@ -1,4 +1,4 @@
-gi//
+//
 //  RecentSearchHeader.swift
 //  Cinely
 //
