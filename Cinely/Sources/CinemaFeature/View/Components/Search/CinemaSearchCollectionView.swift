@@ -21,6 +21,14 @@ final class CinemaSearchTableView: BaseTableView {
             CinemaEmptyCell.self,
             forCellReuseIdentifier: CinemaEmptyCell.id
         )
+        self.register(
+            RefreshCell.self,
+            forCellReuseIdentifier: RefreshCell.id
+        )
+        self.register(
+            LastEmptyCell.self,
+            forCellReuseIdentifier: LastEmptyCell.id
+        )
     }
 }
 
@@ -57,6 +65,8 @@ extension CinemaSearchTableView {
     }
 }
 
+import RxSwift
+
 // MARK: Cinema Search TableView Cell
 extension CinemaSearchTableView {
     final class CinemaSearchCell: BaseTableViewCell, CellIdentifialble {
@@ -64,22 +74,28 @@ extension CinemaSearchTableView {
         private let titleLabel = UILabel()
         private let dateLabel = UILabel()
         private let cinemaGenreList = CinemaGenreListCollectionView()
-        private let likeButton = LikeButton()
+        private(set) var likeButton = LikeButton()
+        private(set) var disposeBag = DisposeBag()
         
         func set(with model: TodayMovieModel) {
-            postImageView.setDefaultImage(image: UIImage.splash)
+            postImageView.setKFImage(image: model.postImage, size: CGSize(width: 100, height: 100))
             titleLabel.text = model.title
-            dateLabel.text = model.releaseDate
+            dateLabel.text = model.releaseDate.toFormattedString(current: "yyyy-MM-dd", after: "yyyy. MM. dd")
             likeButton.isSelected = model.favorite
             cinemaGenreList.setGenres(model.genres)
+        }
+        
+        override func prepareForReuse() {
+            super.prepareForReuse()
+            disposeBag = DisposeBag()
         }
         
         override func addAttributes() {
             postImageView.layer.cornerRadius = 5
             postImageView.contentMode = .scaleAspectFill
             postImageView.clipsToBounds = true
-            postImageView.backgroundColor = Color.green
             titleLabel.font = Font.bold17
+            titleLabel.numberOfLines = 2
             dateLabel.font = Font.light14
             dateLabel.textColor = Color.mediumGray.withAlphaComponent(0.5)
         }
@@ -141,13 +157,12 @@ extension CinemaSearchTableView {
 // MARK: internal Genre List View - CinemaGenreListCollectionView
 extension CinemaSearchTableView {
     private class CinemaGenreListCollectionView: BaseCollectiionView {
-        private var strongDataSource: DataSource!
+        private var strongDataSource: CustomDataSource!
         
         convenience init() {
             self.init(frame: .zero, collectionViewLayout: TagCollectionViewFlowLayout())
-            self.strongDataSource = DataSource()
+            self.strongDataSource = CustomDataSource()
             self.dataSource = strongDataSource
-            
             self.register(
                 TagCollectionViewCell.self,
                 forCellWithReuseIdentifier: TagCollectionViewCell.id
@@ -172,7 +187,7 @@ extension CinemaSearchTableView {
         }
     }
     
-    private class DataSource: NSObject, UICollectionViewDataSource {
+    private class CustomDataSource: NSObject, UICollectionViewDataSource {
         var models: [String] = []
         
         convenience init(models: [String]) {
