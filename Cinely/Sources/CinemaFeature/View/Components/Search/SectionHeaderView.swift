@@ -7,11 +7,18 @@
 
 import UIKit
 import Design
+import RxSwift
 
 final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     private let sectionTitleLabel = UILabel()
     private(set) var deleteButton = UIButton()
-
+    var disposeBag = DisposeBag()
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
+    
     override func addChild() {
         self.addSubview(sectionTitleLabel)
         self.addSubview(deleteButton)
@@ -39,8 +46,28 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
         sectionTitleLabel.text = string
     }
     
-    func setButtonTitle(_ string: String) {
-        deleteButton.setAttributedTitle(NSAttributedString(string: string, attributes: [.foregroundColor : Color.green]), for: .normal)
+    func setTitleBinding(observable: Observable<(String, Bool)>) {
+        observable
+            .subscribe(with: self, onNext: { cell, tuple in
+                let (text, enable) = tuple
+                cell.deleteButton
+                    .setAttributedTitle(
+                        NSAttributedString(string: text, attributes: [.foregroundColor : Color.green]),
+                        for: .normal
+                    )
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    func setButtonTitle(_ text: String) {
+        deleteButton
+            .setAttributedTitle(
+                NSAttributedString(
+                    string: text,
+                    attributes: [.foregroundColor : Color.green]
+                ),
+                for: .normal
+            )
     }
     
     func setDeleteButtonHidden(_ bool: Bool) {
