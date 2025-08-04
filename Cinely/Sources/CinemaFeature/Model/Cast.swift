@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct Cast {
-    let postImageView: String
+struct Cast: Hashable {
+    let profileImageURL: String
     let actorName: String
     let roleName: String
 }

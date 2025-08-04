@@ -16,26 +16,29 @@ final class CastCell: BaseCollectionViewCell, CellIdentifialble {
     
     override func addAttributes() {
         castImageView.contentMode = .scaleAspectFill
-        castImageView.layer.cornerRadius = 30
+        castImageView.layer.cornerRadius = 25
         castImageView.clipsToBounds = true
         
-        actorNameLabel.font = Font.bold17
-        roleNameLabel.font = Font.thin14
+        actorNameLabel.font = Font.bold14
+        roleNameLabel.font = Font.thin12
         actorNameLabel.textColor = Color.white
         roleNameLabel.textColor = Color.mediumGray.withAlphaComponent(0.6)
+        roleNameLabel.textAlignment = .left
+        roleNameLabel.minimumScaleFactor = 0.7
+        roleNameLabel.numberOfLines = 3
     }
     
     override func addChild() {
-        self.addSubview(castImageView)
-        self.addSubview(actorNameLabel)
-        self.addSubview(roleNameLabel)
+        self.contentView.addSubview(castImageView)
+        self.contentView.addSubview(actorNameLabel)
+        self.contentView.addSubview(roleNameLabel)
         castImageView.translatesAutoresizingMaskIntoConstraints = false
         actorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         roleNameLabel.translatesAutoresizingMaskIntoConstraints = false
     }
     
     override func addLayout() {
-        let imageHeight = castImageView.heightAnchor.constraint(equalToConstant: 60)
+        let imageHeight = castImageView.heightAnchor.constraint(equalToConstant: 50)
         imageHeight.isActive = true
         imageHeight.priority = .defaultHigh
         
@@ -43,7 +46,7 @@ final class CastCell: BaseCollectionViewCell, CellIdentifialble {
             castImageView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 4),
             castImageView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
             castImageView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -4),
-            castImageView.widthAnchor.constraint(equalToConstant: 60),
+            castImageView.widthAnchor.constraint(equalToConstant: 50),
             
             actorNameLabel.centerYAnchor.constraint(equalTo: castImageView.centerYAnchor),
             actorNameLabel.leadingAnchor.constraint(equalTo: castImageView.trailingAnchor, constant: 8),
@@ -55,8 +58,7 @@ final class CastCell: BaseCollectionViewCell, CellIdentifialble {
     }
     
     func set(cast: Cast) {
-        // self.castImageView.setKFImage(image: cast.postImageView, size: CGSize(width: 60, height: 60))
-        self.castImageView.setDefaultImage(image: UIImage.hyeonghwan)
+        self.castImageView.setKFImage(image: cast.profileImageURL, size: CGSize(width: 50, height: 50))
         self.actorNameLabel.text = cast.actorName
         self.roleNameLabel.text = cast.roleName
     }

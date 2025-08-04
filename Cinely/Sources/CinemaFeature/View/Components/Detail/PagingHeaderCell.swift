@@ -37,8 +37,7 @@ final class PagingHeaderCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
-    func set(image: String) {
-        // postImageView.setKFImage(image: image, size: CGSize(width: UIScreen.main.bounds.width, height: Self.height))
-        postImageView.setDefaultImage(image: UIImage.hyeonghwan)
+    func set(filePath: String) {
+        postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
     }
 }

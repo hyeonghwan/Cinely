@@ -9,65 +9,103 @@ import UIKit
 import Design
 
 final class BackDropFooterView: BaseReusableView, CellIdentifialble {
-
-    private let horizontalStackView = UIStackView()
-    private let dateImageView = UIImageView()
-    private let dateLabel = UILabel()
-    private let ratingImageView = UIImageView()
-    private let ratingLabel = UILabel()
-    private let genreImageView = UIImageView()
-    private let genreLabel = UILabel()
+    
+    private class ImageLabelContainer: BaseView {
+        fileprivate let imageView = UIImageView()
+        fileprivate let label = UILabel()
+        
+        override func addChild() {
+            self.addSubview(imageView)
+            self.addSubview(label)
+            imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+            imageView.setContentCompressionResistancePriority(.required, for: .vertical)
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            label.translatesAutoresizingMaskIntoConstraints = false
+            
+            NSLayoutConstraint.activate([
+                label.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 6),
+                label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+                label.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+                imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+                imageView.topAnchor.constraint(equalTo: self.topAnchor),
+                imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+                imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            ])
+        }
+        
+        override func addAttributes() {
+            label.textColor = Color.mediumGray.withAlphaComponent(0.6)
+            label.font = Font.thin12
+            imageView.image = Icons.calendar?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 12, weight: .medium))
+            imageView.tintColor = Color.mediumGray.withAlphaComponent(0.6)
+            imageView.contentMode = .scaleAspectFit
+        }
+        
+        fileprivate func setModel(text: String) {
+            label.text = text
+        }
+    }
+    
+    private let dateContainer = ImageLabelContainer()
+    private let ratingContainer = ImageLabelContainer()
+    private let genreContainer = ImageLabelContainer()
     private let separatorLabel1 = UILabel()
     private let separatorLabel2 = UILabel()
 
     override func addAttributes() {
-        horizontalStackView.spacing = 4
         let iconConfig = UIImage.SymbolConfiguration(pointSize: 12, weight: .medium)
-        dateImageView.image = Icons.calendar?.withConfiguration(iconConfig)
-        ratingImageView.image = Icons.starFill?.withConfiguration(iconConfig)
-        genreImageView.image = Icons.filmFill?.withConfiguration(iconConfig)
+        dateContainer.imageView.image = Icons.calendar?.withConfiguration(iconConfig)
+        ratingContainer.imageView.image = Icons.starFill?.withConfiguration(iconConfig)
+        genreContainer.imageView.image = Icons.filmFill?.withConfiguration(iconConfig)
 
-        [dateImageView, ratingImageView, genreImageView].forEach {
-            $0.tintColor = Color.mediumGray.withAlphaComponent(0.6)
-            $0.contentMode = .scaleAspectFit
-        }
-        [dateLabel, ratingLabel, genreLabel, separatorLabel1, separatorLabel2].forEach {
-            $0.textColor = Color.mediumGray.withAlphaComponent(0.6)
-            $0.font = Font.thin12
-        }
+        genreContainer.label.numberOfLines = 2
         separatorLabel1.text = " | "
         separatorLabel2.text = " | "
+        
+        separatorLabel1.textColor = Color.mediumGray.withAlphaComponent(0.6)
+        separatorLabel1.font = Font.thin12
+        
+        separatorLabel2.textColor = Color.mediumGray.withAlphaComponent(0.6)
+        separatorLabel2.font = Font.thin12
     }
     
     override func addChild() {
-        self.addSubview(horizontalStackView)
-        horizontalStackView.addArrangedSubview(dateImageView)
-        horizontalStackView.addArrangedSubview(dateLabel)
-        
-        horizontalStackView.addArrangedSubview(separatorLabel1)
-        
-        horizontalStackView.addArrangedSubview(ratingImageView)
-        horizontalStackView.addArrangedSubview(ratingLabel)
-        
-        horizontalStackView.addArrangedSubview(separatorLabel2)
-        
-        horizontalStackView.addArrangedSubview(genreImageView)
-        horizontalStackView.addArrangedSubview(genreLabel)
-        
-        horizontalStackView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(dateContainer)
+        self.addSubview(ratingContainer)
+        self.addSubview(genreContainer)
+        self.addSubview(separatorLabel1)
+        self.addSubview(separatorLabel2)
+        dateContainer.translatesAutoresizingMaskIntoConstraints = false
+        ratingContainer.translatesAutoresizingMaskIntoConstraints = false
+        genreContainer.translatesAutoresizingMaskIntoConstraints = false
+        separatorLabel1.translatesAutoresizingMaskIntoConstraints = false
+        separatorLabel2.translatesAutoresizingMaskIntoConstraints = false
     }
 
     override func addLayout() {
         NSLayoutConstraint.activate([
-            horizontalStackView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            horizontalStackView.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+            dateContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            ratingContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            genreContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            separatorLabel1.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            separatorLabel2.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            
+            ratingContainer.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            separatorLabel1.trailingAnchor.constraint(equalTo: ratingContainer.leadingAnchor, constant: -6),
+            separatorLabel2.leadingAnchor.constraint(equalTo: ratingContainer.trailingAnchor, constant: 6),
+            
+            dateContainer.trailingAnchor.constraint(equalTo: separatorLabel1.leadingAnchor, constant: -6),
+            dateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 4),
+            
+            genreContainer.leadingAnchor.constraint(equalTo: separatorLabel2.trailingAnchor, constant: 6),
+            genreContainer.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -4)
         ])
     }
 
-    public func set(date: String = "2024-12-24", rating: Double = 8.0, genres: String = "액션, 스릴러") {
-        dateLabel.text = date
-        ratingLabel.text = String(format: "%.1f", rating)
-        genreLabel.text = genres
+    func set(date: String, rating: Double, genres: String) {
+        dateContainer.setModel(text: date)
+        ratingContainer.setModel(text: String(format: "%.1f", rating))
+        genreContainer.setModel(text: genres)
     }
 }
 
