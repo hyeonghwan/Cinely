@@ -7,12 +7,14 @@
 
 import Foundation
 
-struct TodayMovieModel {
+struct TodayMovieModel: Hashable, Codable {
+    var id: Int = 0
     let postImage:   String
     let title:       String
     let description: String
     var favorite:      Bool
     var genres:     [String] = ["액션", "SF", "모험", "애니메이션"]
+    var voteAverage: Double = 0.0
     var releaseDate: String = "2025. 04. 25"
     
     static var dummyList: [Self] {
@@ -55,9 +57,4 @@ struct TodayMovieModel {
             )
         ]
     }
-}
-
-struct SearchItem {
-    let searchText: String
-    var date: Date = Date.now
 }

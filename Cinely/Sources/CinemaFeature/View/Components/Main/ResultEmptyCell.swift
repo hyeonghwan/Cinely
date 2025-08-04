@@ -19,6 +19,7 @@ final class RecentSearchEmptyCell: BaseCollectionViewCell, CellIdentifialble {
     override func addAttributes() {
         noRecentLabel.text = "최근 검색어 내역이 없습니다."
         noRecentLabel.font = Font.thin14
+        noRecentLabel.textAlignment = .center
         noRecentLabel.textColor = Color.mediumGray.withAlphaComponent(0.6)
     }
     

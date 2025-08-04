@@ -70,9 +70,15 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
-    func set(with: TodayMovieModel) {
-        self.movieImageView.image = UIImage.splash
-        self.titleLabel.text = with.title
-        self.descriptionLabel.text = with.description
+    func set(with model: TodayMovieModel) {
+        self.movieImageView.setKFImage(
+            image: model.postImage,
+            size: CGSize(
+                width: UIScreen.main.bounds.width - 50,
+                height: UIScreen.main.bounds.height / 2 - 80
+            )
+        )
+        self.titleLabel.text = model.title
+        self.descriptionLabel.text = model.description
     }
 }
