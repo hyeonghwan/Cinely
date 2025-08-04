@@ -9,7 +9,7 @@ import Foundation
 
 struct PagedResponseDTO<DTO: Decodable>: Decodable {
     let page: Int?
-    let results: [DTO]?
+    var results: [DTO]?
     let totalPages: Int?
     let totalResults: Int?
 
