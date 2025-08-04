@@ -8,6 +8,8 @@
 import UIKit
 import Design
 
+typealias ProfileView = ProfileContainerCell.ProfileView
+
 final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
     private let profileHeaderView = ProfileView()
     
@@ -27,7 +29,7 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
-    private class ProfileView: BaseView {
+    final class ProfileView: BaseView {
         private let nicknameLabel   = UILabel()
         private let signUpDateLabel = UILabel()
         private let angleImageView  = UIButton()
@@ -57,6 +59,8 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
                 for: .normal
             )
             movieLikeBoxButton.layer.cornerRadius = 8
+            
+            addLayout()
         }
         
         override func addChild() {
@@ -69,8 +73,6 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
             signUpDateLabel.translatesAutoresizingMaskIntoConstraints = false
             angleImageView.translatesAutoresizingMaskIntoConstraints = false
             movieLikeBoxButton.translatesAutoresizingMaskIntoConstraints = false
-            
-            addLayout()
         }
         
         private func addLayout() {
@@ -78,6 +80,7 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
             NSLayoutConstraint.activate([
                 nicknameLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 16),
                 nicknameLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
+                nicknameLabel.trailingAnchor.constraint(lessThanOrEqualTo: signUpDateLabel.leadingAnchor, constant: -8),
                 
                 angleImageView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -12),
                 angleImageView.centerYAnchor.constraint(equalTo: nicknameLabel.centerYAnchor),
@@ -96,3 +99,4 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         }
     }
 }
+    

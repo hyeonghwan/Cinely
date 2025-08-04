@@ -7,10 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		170F6AC72E3E212900768F8C /* HwanMacros in Frameworks */ = {isa = PBXBuildFile; productRef = 170F6AC62E3E212900768F8C /* HwanMacros */; };
+		170F6ACE2E3E220200768F8C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 170F6ACD2E3E220200768F8C /* Alamofire */; };
+		170F6ADE2E3E274E00768F8C /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 170F6ADD2E3E274E00768F8C /* RxCocoa */; };
+		170F6AE02E3E274E00768F8C /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 170F6ADF2E3E274E00768F8C /* RxRelay */; };
+		170F6AE22E3E274E00768F8C /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 170F6AE12E3E274E00768F8C /* RxSwift */; };
 		172C9BFA2E3B820F00809254 /* Design in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BF92E3B820F00809254 /* Design */; };
 		172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9BFB2E3B820F00809254 /* HwanKit */; };
 		172C9D212E3DCDE500809254 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 172C9D202E3DCDE500809254 /* Kingfisher */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		170F6ADB2E3E24DA00768F8C /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		172C9BC02E3B792100809254 /* Cinely.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cinely.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,8 +60,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				170F6ADE2E3E274E00768F8C /* RxCocoa in Frameworks */,
+				170F6ACE2E3E220200768F8C /* Alamofire in Frameworks */,
+				170F6AE02E3E274E00768F8C /* RxRelay in Frameworks */,
 				172C9D212E3DCDE500809254 /* Kingfisher in Frameworks */,
+				170F6AC72E3E212900768F8C /* HwanMacros in Frameworks */,
 				172C9BFC2E3B820F00809254 /* HwanKit in Frameworks */,
+				170F6AE22E3E274E00768F8C /* RxSwift in Frameworks */,
 				172C9BFA2E3B820F00809254 /* Design in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -77,6 +100,7 @@
 				172C9BBC2E3B792100809254 /* Sources */,
 				172C9BBD2E3B792100809254 /* Frameworks */,
 				172C9BBE2E3B792100809254 /* Resources */,
+				170F6ADB2E3E24DA00768F8C /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -90,6 +114,11 @@
 				172C9BF92E3B820F00809254 /* Design */,
 				172C9BFB2E3B820F00809254 /* HwanKit */,
 				172C9D202E3DCDE500809254 /* Kingfisher */,
+				170F6AC62E3E212900768F8C /* HwanMacros */,
+				170F6ACD2E3E220200768F8C /* Alamofire */,
+				170F6ADD2E3E274E00768F8C /* RxCocoa */,
+				170F6ADF2E3E274E00768F8C /* RxRelay */,
+				170F6AE12E3E274E00768F8C /* RxSwift */,
 			);
 			productName = Cinely;
 			productReference = 172C9BC02E3B792100809254 /* Cinely.app */;
@@ -122,6 +151,9 @@
 			packageReferences = (
 				172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */,
+				170F6AC52E3E212900768F8C /* XCRemoteSwiftPackageReference "hwan_macro" */,
+				170F6ACC2E3E220200768F8C /* XCRemoteSwiftPackageReference "Alamofire" */,
+				170F6ADC2E3E274E00768F8C /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 172C9BC12E3B792100809254 /* Products */;
@@ -156,6 +188,8 @@
 /* Begin XCBuildConfiguration section */
 		172C9BD42E3B792200809254 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 172C9BC22E3B792100809254 /* Cinely */;
+			baseConfigurationReferenceRelativePath = Resources/tmdb.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -168,7 +202,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -188,6 +222,8 @@
 		};
 		172C9BD52E3B792200809254 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 172C9BC22E3B792100809254 /* Cinely */;
+			baseConfigurationReferenceRelativePath = Resources/tmdb.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -200,7 +236,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -361,6 +397,30 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		170F6AC52E3E212900768F8C /* XCRemoteSwiftPackageReference "hwan_macro" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hyeonghwan/hwan_macro";
+			requirement = {
+				kind = revision;
+				revision = 7d7524b8302cef6dd1d12a01199cdd42bcb29280;
+			};
+		};
+		170F6ACC2E3E220200768F8C /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		170F6ADC2E3E274E00768F8C /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.0;
+			};
+		};
 		172C9BF52E3B820100809254 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher";
@@ -380,6 +440,31 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		170F6AC62E3E212900768F8C /* HwanMacros */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170F6AC52E3E212900768F8C /* XCRemoteSwiftPackageReference "hwan_macro" */;
+			productName = HwanMacros;
+		};
+		170F6ACD2E3E220200768F8C /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170F6ACC2E3E220200768F8C /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		170F6ADD2E3E274E00768F8C /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170F6ADC2E3E274E00768F8C /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		170F6ADF2E3E274E00768F8C /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170F6ADC2E3E274E00768F8C /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		170F6AE12E3E274E00768F8C /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 170F6ADC2E3E274E00768F8C /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
 		172C9BF92E3B820F00809254 /* Design */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 172C9BF82E3B820F00809254 /* XCRemoteSwiftPackageReference "hwan-kit" */;
