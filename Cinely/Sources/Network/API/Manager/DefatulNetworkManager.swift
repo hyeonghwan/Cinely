@@ -56,27 +56,29 @@ final class DefaultNetworkManager: NetworkManager {
                                                     decodeType: DTO.Type,
                                                     decoder: JSONDecoder? = nil) -> Observable<DTO>
     {
-        Observable<DTO>.create { [weak self] observer in
-            guard let self else { return Disposables.create() }
-            do {
-                let urlRequest = try resource.urlRequest()
-                let dataRequest = API.session.request(urlRequest, interceptor: .retryPolicy)
-                    .validate(statusCode: 200..<300)
-                    .responseDecodable(of: DTO.self, decoder: decoder == nil ? defaultDecorder : decoder!) { response in
-                        switch response.result {
-                        case .success(let dto):
-                            observer.onNext(dto)
-                            observer.onCompleted()
-                        case .failure(let error):
-                            observer.onError(error)
+        Observable.deferred {
+            Observable<DTO>.create { [weak self] observer in
+                guard let self else { return Disposables.create() }
+                do {
+                    let urlRequest = try resource.urlRequest()
+                    let dataRequest = API.session.request(urlRequest, interceptor: .retryPolicy)
+                        .validate(statusCode: 200..<300)
+                        .responseDecodable(of: DTO.self, decoder: decoder == nil ? defaultDecorder : decoder!) { response in
+                            switch response.result {
+                            case .success(let dto):
+                                observer.onNext(dto)
+                                observer.onCompleted()
+                            case .failure(let error):
+                                observer.onError(error)
+                            }
                         }
+                    return Disposables.create {
+                        dataRequest.cancel()
                     }
-                return Disposables.create {
-                    dataRequest.cancel()
+                } catch {
+                    observer.onError(error)
+                    return Disposables.create()
                 }
-            } catch {
-                observer.onError(error)
-                return Disposables.create()
             }
         }
     }
