@@ -37,8 +37,10 @@ extension ApiResource {
         
         let queries = self.query.makeQuery()
         
-        components.queryItems = queries.reduce(into: [URLQueryItem]()) { origin, next in
-            origin.append(URLQueryItem(name: next.key, value: next.value))
+        if (query as? EmptyQuery) == nil {
+            components.queryItems = queries.reduce(into: [URLQueryItem]()) { origin, next in
+                origin.append(URLQueryItem(name: next.key, value: next.value))
+            }
         }
         
         guard let url = components.url else {
