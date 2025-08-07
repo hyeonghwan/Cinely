@@ -22,4 +22,6 @@ enum Icons {
     static let personCircle = UIImage(systemName: "person.circle")
     static let information = UIImage(systemName: "info.circle")
     static let checkmark = UIImage(systemName: "checkmark")
+    static let warning = UIImage(systemName: "exclamationmark.triangle")
+    static let clockwise = UIImage(systemName: "arrow.clockwise")
 }

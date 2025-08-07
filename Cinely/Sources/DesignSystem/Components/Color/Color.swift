@@ -13,6 +13,7 @@ enum Color {
     static let mediumGray = UIColor(hex: 0x8E8E8E)
     static let black =      UIColor(hex: 0x000000)
     static let white =      UIColor(hex: 0xFFFFFF)
+    static let redAlpha08 = UIColor.systemRed.withAlphaComponent(0.8)
 }
 
 extension UIColor {
