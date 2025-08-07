@@ -40,6 +40,9 @@ enum Storage {
     @KeyValueStore(key: .userSignUpDate, defaultValue: Date.now)
     static var userSignUpDate: Date
     
+    @KeyValueStore(key: .userSignUpDate, defaultValue: false)
+    static var didFinishOnboarding: Bool
+    
     @CodableStore(key: .favoriteMovie, defaultValue: [])
     static var favoriteMovie: [TodayMovieModel]
     
