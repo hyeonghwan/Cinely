@@ -13,7 +13,7 @@ enum MovieDetailSection: Int {
     case casts
 }
 
-enum MovieDetailItem: Hashable {
+enum MovieDetailItem: Equatable, Hashable {
     case pagingHeader(MovieDetailModel)
     case synopsis(String)
     case casts(Cast)
@@ -26,6 +26,22 @@ enum MovieDetailItem: Hashable {
             hasher.combine(string)
         case .casts(let cast):
             hasher.combine(cast)
+        }
+    }
+    
+    static func == (lhs: MovieDetailItem, rhs: MovieDetailItem) -> Bool {
+        switch (lhs, rhs) {
+        case (.pagingHeader(let lhsModel), .pagingHeader(let rhsModel)):
+            return lhsModel == rhsModel
+            
+        case (.synopsis(let lhsString), .synopsis(let rhsString)):
+            return lhsString == rhsString
+            
+        case (.casts(let lhsCast), .casts(let rhsCast)):
+            return lhsCast == rhsCast
+            
+        default:
+            return false
         }
     }
 }

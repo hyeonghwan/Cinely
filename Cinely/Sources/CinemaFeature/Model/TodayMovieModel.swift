@@ -8,7 +8,7 @@
 import Foundation
 
 struct TodayMovieModel: Hashable, Codable {
-    var id: Int = 0
+    var id: Int
     let postImage:   String
     let title:       String
     let description: String
@@ -17,44 +17,27 @@ struct TodayMovieModel: Hashable, Codable {
     var voteAverage: Double = 0.0
     var releaseDate: String = "2025. 04. 25"
     
-    static var dummyList: [Self] {
-        [
-            TodayMovieModel(
-                postImage: "heart",
-                title: "기생충",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            ),
-            TodayMovieModel(
-                postImage: "heart",
-                title: "하얼빈",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            ),
-            TodayMovieModel(
-                postImage: "heart",
-                title: "어벤져스",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            ),
-            TodayMovieModel(
-                postImage: "heart",
-                title: "하위",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            ),
-            TodayMovieModel(
-                postImage: "heart",
-                title: "워킹데드",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            ),
-            TodayMovieModel(
-                postImage: "heart",
-                title: "왕좌의 게임",
-                description: "전원 백수로 살 길 막막하지만 사이는 좋은 기택 가족, 장남 기우에게 명문대생 친구가 이러쿵 저러쿵 요러쿵 있었던 것이었다.....",
-                favorite: false
-            )
-        ]
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(favorite)
+    }
+    
+    static func ==(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.id == rhs.id && lhs.favorite == rhs.favorite
+    }
+}
+
+extension TodayMovieModel {
+    func copy(favorite: Bool) -> TodayMovieModel {
+        return TodayMovieModel(
+            id: self.id,
+            postImage: self.postImage,
+            title: self.title,
+            description: self.description,
+            favorite: favorite,
+            genres: self.genres,
+            voteAverage: self.voteAverage,
+            releaseDate: self.releaseDate
+        )
     }
 }

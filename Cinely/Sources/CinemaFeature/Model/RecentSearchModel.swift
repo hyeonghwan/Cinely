@@ -8,12 +8,16 @@
 import Foundation
 
 
-struct RecentSearchModel: Hashable, Codable {
+struct RecentSearchModel: Hashable, Codable, Equatable {
     let word: String
     let lastSearchDate: String
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(word)
+    }
+    
+    static func ==(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.word == rhs.word
     }
     
     static let dummy: [RecentSearchModel] = [
