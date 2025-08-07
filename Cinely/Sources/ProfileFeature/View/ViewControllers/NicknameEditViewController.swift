@@ -1,24 +1,35 @@
 //
-//  NicknameSettingViewController.swift
+//  NicknameEditViewController.swift
 //  Cinely
 //
-//  Created by hwan on 7/31/25.
+//  Created by hwan on 8/5/25.
 //
 
 import UIKit
 import Design
 import RxSwift
+import RxRelay
 
-final class NicknameSettingViewController: BaseViewController {
+
+final class NicknameEditViewController: BaseViewController {
     private let nicknameInputField = BottomLayerTextField()
-    private let completionButton   = GreenLayerButton(title: "완료")
     private let editButton         = EditButton(title: "편집")
-    weak var  coordinator: OnboardingCoordinator?
-    private var viewModel: OnboardingFeatureViewModel!
+    
+    private let leftDissmissButton = UIButton()
+    private let saveButton = UIButton()
+    
+    private weak var coordinator: NicknamePresentCoordinator?
+    private var viewModel: ChangeNickNameViewModel!
     private var disposeBag = DisposeBag()
     
-    static func create(coordinator: OnboardingCoordinator, viewModel: OnboardingFeatureViewModel) -> NicknameSettingViewController {
-        let vc = NicknameSettingViewController()
+    static func create(
+        coordinator: NicknamePresentCoordinator,
+        viewModel: ChangeNickNameViewModel,
+        userNickName: String
+    ) -> NicknameEditViewController
+    {
+        let vc = NicknameEditViewController()
+        vc.nicknameInputField.text = userNickName
         vc.coordinator = coordinator
         vc.viewModel = viewModel
         return vc
@@ -29,24 +40,39 @@ final class NicknameSettingViewController: BaseViewController {
         setNavigationTint()
         setNavigationBackButton()
         setNavigationColor()
-        nicknameInputField.textColor = UIColor.white
-        nicknameInputField.tintColor = UIColor.white
         nicknameInputField.attributedPlaceholder = NSAttributedString(string: "편집 버튼을 눌러 닉네임을 설정해주세요", attributes: [.foregroundColor : Color.white.withAlphaComponent(0.6), .font: Font.regular14])
         nicknameInputField.isEnabled = false
+        nicknameInputField.tintColor = Color.white
+        nicknameInputField.textColor = Color.white
+        self.title = "닉네임 편집"
+        
+        leftDissmissButton.tintColor = Color.green
+        leftDissmissButton.setImage(Icons.xmark, for: .normal)
+        let pointSize: CGFloat = 22
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: pointSize)
+        var config = UIButton.Configuration.plain()
+        config.preferredSymbolConfigurationForImage = imageConfig
+        config.background.backgroundColor = .clear
+        leftDissmissButton.configuration = config
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: leftDissmissButton)
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: saveButton)
+        
+        saveButton.setTitle("저장", for: .normal)
+        saveButton.setTitleColor(Color.green, for: .normal)
     }
     
     override func addChild() {
+        self.view.addSubview(leftDissmissButton)
+        self.view.addSubview(saveButton)
         self.view.addSubview(nicknameInputField)
-        self.view.addSubview(completionButton)
         self.view.addSubview(editButton)
         nicknameInputField.translatesAutoresizingMaskIntoConstraints = false
-        completionButton.translatesAutoresizingMaskIntoConstraints   = false
         editButton.translatesAutoresizingMaskIntoConstraints = false
     }
     
     override func addLayout() {
         NSLayoutConstraint.activate([
-            nicknameInputField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            nicknameInputField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             nicknameInputField.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
             nicknameInputField.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -44),
             nicknameInputField.heightAnchor.constraint(equalToConstant: 52),
@@ -55,36 +81,39 @@ final class NicknameSettingViewController: BaseViewController {
             editButton.bottomAnchor.constraint(equalTo: nicknameInputField.bottomAnchor),
             editButton.heightAnchor.constraint(equalTo: nicknameInputField.heightAnchor),
             editButton.widthAnchor.constraint(equalToConstant: 80),
-            
-            completionButton.topAnchor.constraint(equalTo: nicknameInputField.bottomAnchor, constant: 44),
-            completionButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            completionButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            completionButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
     
     override func binding() {
         viewModel.nickNameRelayTrigger
+            .skip(1)
             .map(\.0)
             .bind(to: nicknameInputField.rx.text)
             .disposed(by: disposeBag)
         
         editButton.rx.tap
             .subscribe(with: self, onNext: { vc, value in
-                vc.coordinator?.pushToNicknameEditVC(title: vc.title!)
+                vc.coordinator?.pushNicknameDetailEdit()
             })
             .disposed(by: disposeBag)
         
-        completionButton.rx.tap
+        leftDissmissButton.rx.tap
+            .subscribe(with: self, onNext: { vc, _ in
+                vc.navigationController?.dismiss(animated: true)
+            })
+            .disposed(by: disposeBag)
+        
+        saveButton.rx.tap
             .withLatestFrom(viewModel.nickNameRelayTrigger)
             .subscribe(with: self, onNext: { vc, state in
+                vc.nicknameInputField.resignFirstResponder()
                 let (nickname, inputState) = state
                 if inputState == .valid {
-                    vc.viewModel.singUpTrigger.onNext(nickname)
-                    vc.coordinator?.didFinish()
+                    vc.viewModel.changeNicknameTrigger.onNext(nickname)
+                    vc.coordinator?.dismissPresented()
                 } else {
                     vc.showToastMessage(
-                        offsetY: UIScreen.main.bounds.height - 120,
+                        offsetY: UIScreen.main.bounds.height - 200,
                         status: inputState.toastState,
                         message: inputState.rawValue
                     )

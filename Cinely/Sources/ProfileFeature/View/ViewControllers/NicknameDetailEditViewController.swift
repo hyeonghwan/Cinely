@@ -1,22 +1,22 @@
 //
-//  NicknameDetailViewController.swift
+//  NicknameDetailEditViewController.swift
 //  Cinely
 //
-//  Created by hwan on 7/31/25.
+//  Created by hwan on 8/5/25.
 //
 
 import UIKit
 import Design
 import RxSwift
 
-final class NicknameDetailViewController: BaseViewController {
+final class NicknameDetailEditViewController: BaseViewController {
     private let nicknameInputField = BottomLayerTextField()
     private let informationLabel   = UILabel()
-    weak var coordinator: OnboardingCoordinator?
-    private var viewModel: OnboardingFeatureViewModel!
+    weak var coordinator: NicknamePresentCoordinator?
+    private var viewModel: ChangeNickNameViewModel!
     
-    static func create(coordinator: OnboardingCoordinator, viewModel: OnboardingFeatureViewModel) -> NicknameDetailViewController {
-        let vc = NicknameDetailViewController()
+    static func create(coordinator: NicknamePresentCoordinator, viewModel: ChangeNickNameViewModel) -> NicknameDetailEditViewController {
+        let vc = NicknameDetailEditViewController()
         vc.coordinator = coordinator
         vc.viewModel = viewModel
         return vc
@@ -24,15 +24,10 @@ final class NicknameDetailViewController: BaseViewController {
     
     override func addAttributes() {
         setDefaultBackground()
+        self.navigationItem.title = "닉네임 편집"
         nicknameInputField.attributedPlaceholder = NSAttributedString(string: "닉네임을 입력해주세요!", attributes: [.foregroundColor : Color.white.withAlphaComponent(0.6), .font: Font.regular14])
-        
-        nicknameInputField.tintColor = Color.white
-        nicknameInputField.textColor = Color.white
-        nicknameInputField.font = Font.regular14
         informationLabel.text = "닉네임에 숫자는 포함할 수 없어요"
         informationLabel.font = Font.semiBold14
-        informationLabel.textColor = Color.white
-        setNavigationColor()
     }
     
     override func addChild() {
@@ -71,6 +66,7 @@ final class NicknameDetailViewController: BaseViewController {
         
         nicknameInputField.rx.controlEvent(.editingDidEndOnExit)
             .subscribe(with: self, onNext: { vc, value in
+                vc.view.endEditing(true)
                 vc.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
@@ -82,3 +78,4 @@ final class NicknameDetailViewController: BaseViewController {
             .disposed(by: disposeBag)
     }
 }
+

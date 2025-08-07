@@ -7,17 +7,22 @@
 
 import UIKit
 import Design
+import RxSwift
+import RxCocoa
 
 final class OnboardingViewController: BaseViewController {
     private let onboardingImageView = MovieImageView()
     private let onboardingLabel = UILabel()
     private let descriptionLabel = UILabel()
     private let startButton = GreenLayerButton(title: "시작하기")
+    private var disposeBag = DisposeBag()
+    
+    weak var coordinator: OnboardingCoordinator?
     
     override func addAttributes() {
         setDefaultBackground()
         setNavigationBackButton()
-        
+        setNavigationColor()
         self.onboardingImageView.setDefaultImage(image: UIImage(resource: ImageResource.splash))
         
         onboardingLabel.textColor = Color.white
@@ -30,6 +35,7 @@ final class OnboardingViewController: BaseViewController {
         당신만의 영화 세상,
         Cinely를 시작해보세요
         """
+        descriptionLabel.textColor = Color.white
         descriptionLabel.numberOfLines = 2
     }
     
@@ -66,13 +72,10 @@ final class OnboardingViewController: BaseViewController {
     }
     
     override func binding() {
-        startButton.addTarget(self, action: #selector(moveToNicknameSettingVC(_:)), for: .touchUpInside)
-    }
-    
-    @objc
-    private func moveToNicknameSettingVC(_ sender: UIButton) {
-        let vc = NicknameSettingViewController()
-        vc.title = "닉네임 설정"
-        self.navigationController?.pushViewController(vc, animated: true)
+        startButton.rx.tap
+            .subscribe(with: self, onNext: { vc, _ in
+                vc.coordinator?.pushToNicknameSettingVC()
+            })
+            .disposed(by: disposeBag)
     }
 }

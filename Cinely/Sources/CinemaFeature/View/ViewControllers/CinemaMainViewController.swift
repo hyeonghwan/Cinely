@@ -7,31 +7,42 @@
 
 import UIKit
 import Design
-import HwanMacros
 import RxCocoa
 import RxSwift
 
-@Logging
+
 final class CinemaMainViewController: BaseViewController {
     
-    static func create(with viewModel: CinemaMainViewModel) -> CinemaMainViewController {
+    static func create(with viewModel: any ViewModel, coordinator: CinemaMainCoordinator) -> CinemaMainViewController {
         let vc = CinemaMainViewController()
-        vc.viewModel = viewModel
+        vc.viewModel = (viewModel as! CinemaMainViewModel) // as! DefaultCinemaMainViewModel
+        vc.coordinator = coordinator
         return vc
     }
     
     private var diffableDataSources: UICollectionViewDiffableDataSource<MainCollectionSection, MainHashableItem>!
     private lazy var collectionView = CinemaCollectionView(layout: dataSourceCompositionalLayout())
     fileprivate var viewModel: CinemaMainViewModel!
-    private var disposeBag = DisposeBag()
+    private weak var coordinator: CinemaMainCoordinator?
+    private var indicatorContainerView = IndicatorContainerView()
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    }
     
     override func addAttributes() {
+        setIndicator(indicator: indicatorContainerView)
         setDefaultBackground()
         setNavigationTint()
+        setNavigationColor()
         setNavigationBackButton()
         navigationSetting()
         diffableDataSourceSetting()
         self.collectionView.dataSource = diffableDataSources
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = Color.green
+        collectionView.refreshControl = refreshControl
     }
     
     private func navigationSetting() {
@@ -39,8 +50,8 @@ final class CinemaMainViewController: BaseViewController {
         self.navigationItem.rightBarButtonItem
         = UIBarButtonItem(image: Icons.magnifyingglass?.withTintColor(Color.green.withAlphaComponent(0.6)),
                           style: .plain,
-                          target: self,
-                          action: #selector(moveToSearch(_:)))
+                          target: nil,
+                          action: nil)
     }
     
     override func addChild() {
@@ -57,74 +68,127 @@ final class CinemaMainViewController: BaseViewController {
         ])
     }
     
+    private var disposeBag = DisposeBag()
     private let movieSelected = PublishSubject<IndexPath>()
+    private let favoriteButtonTapped = PublishSubject<(TodayMovieModel, Bool)>()
+    private let viewDidLoad = PublishSubject<Void>()
+    private let viewWillAppear = PublishSubject<Void>()
+    private let deleteRecentSearchModel = PublishSubject<RecentSearchModel>()
+    private let deleteAllRecentSearchModel = PublishSubject<Void>()
+    private let reloadComplete = PublishRelay<Void>()
+    private let todayMovieRetryTrigger = PublishRelay<Void>()
+    
+    
+    private let refreshEnd = PublishRelay<Void>()
     
     override func binding() {
+        
+        self.navigationItem.rightBarButtonItem?.rx.tap
+            .subscribe(with: self, onNext: { vc, _ in
+                vc.coordinator?.moveToSearch()
+            })
+            .disposed(by: disposeBag)
+        
         collectionView.rx.itemSelected
             .bind(to: movieSelected)
             .disposed(by: disposeBag)
         
         movieSelected
             .subscribe(with: self, onNext: { (vc: CinemaMainViewController, indexPath) in
-                guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-                    return
-                }
                 guard let item = vc.diffableDataSources.itemIdentifier(for: indexPath) else {
                     return
                 }
                 if case let .todayMovie(movieModel) = item {
-                    let detailVC = CinemaDetailViewController.create(
-                        with: .init(
-                            vmDependency: CinemaDetailViewModel.Dependency.init(
-                                appState: appDelegate.appState,
-                                appStorage: appDelegate.storage,
-                                movieImageProvider: DefaultMovieImageProvider(networkManager: appDelegate.networkManager),
-                                movieState: CinemaDetailViewModel
-                                    .MovieState(
-                                        movieModel: movieModel
-                                    )
-                            ),
-                            movieModel: movieModel)
-                    )
-                    vc.navigationController?.pushViewController(detailVC, animated: true)
+                    vc.coordinator?.moveToDetail(movieModel)
+                } else if case let .recentSearch(recentSearchWord) = item {
+                    vc.coordinator?.moveToSearch(word: recentSearchWord.word)
+                } else if case let .user(user) = item {
+                    if let coordinator = vc.coordinator as? NicknamePresentCoordinator {
+                        coordinator.presentNicknameSetting(userNickName: user.nickname)
+                    }
                 }
             })
             .disposed(by: disposeBag)
         
-        let output = viewModel.transform(input: .init())
+        let output = viewModel.transform(input:
+                .init(
+                    viewDidLoad: Observable.just(()),
+                    viewWillAppear: viewWillAppear.asObservable(),
+                    favoriteButtonTapped: favoriteButtonTapped,
+                    deleteRecentSearchModel: deleteRecentSearchModel.asObservable(),
+                    deleteAllRecentSearchModel: deleteAllRecentSearchModel.asObservable(),
+                    todayMovieRetryTrigger: todayMovieRetryTrigger.asObservable(),
+                    reloadComplete: reloadComplete.asObservable(),
+                    refreshingTrigger: collectionView.refreshControl!.rx.controlEvent(.valueChanged).asObservable()
+                )
+        )
+        
+        output.isLoading
+            .drive(with: self, onNext: { vc, value in
+                if value {
+                    vc.indicatorContainerView.isHidden = false
+                    vc.indicatorContainerView.indicator.startAnimating()
+                } else {
+                    vc.indicatorContainerView.isHidden = true
+                    vc.indicatorContainerView.indicator.stopAnimating()
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        output.alertTrigger
+            .map { [weak self] errMessage in
+                var errMessage = errMessage
+                errMessage.retry = { self?.todayMovieRetryTrigger.accept(()) }
+                return errMessage
+            }
+            .drive(errorRetryAlert)
+            .disposed(by: disposeBag)
+        
         output.section
+            .filter { !$0.isEmpty }
             .drive(with: self, onNext: { vc, models in
                 vc.apply(sectionAndModels: models)
+            })
+            .disposed(by: disposeBag)
+        
+        output.refreshingEnd
+            .drive(with: self, onNext: { vc, _ in
+                vc.refreshEnd.accept(())
+            })
+            .disposed(by: disposeBag)
+        
+        refreshEnd
+            .subscribe(with: self, onNext: { vc, _ in
+                if vc.collectionView.refreshControl!.isRefreshing {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        vc.collectionView.refreshControl!.endRefreshing()
+                    }
+                }
             })
             .disposed(by: disposeBag)
     }
     
     private func apply(sectionAndModels: [CinemaMainViewModel.MainSectionAndItem]) {
         var snapshot = NSDiffableDataSourceSnapshot<MainCollectionSection, MainHashableItem>()
+        
         for sectionAndModel in sectionAndModels {
             let section = sectionAndModel.section
             let items = sectionAndModel.items
             snapshot.appendSections([section])
             snapshot.appendItems(items, toSection: section)
         }
-        self.diffableDataSources.apply(snapshot)
-    }
-    
-    @objc
-    private func moveToSearch(_ sender: Any) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         
-        let searchVC = CinemaMovieSearchVIewController.create(
-            with: CinemaSearchViewModel(
-                dependency: .init(
-                    appState: appDelegate.appState,
-                    appStorage: appDelegate.storage,
-                    movieSearchProvider: appDelegate.movieSearchProvider
-                )
-            )
-        )
+        if indicatorContainerView.isHidden == false {
+            self.reloadComplete.accept(())
+        }
         
-        self.navigationController?.pushViewController(searchVC, animated: true)
+        if let first = sectionAndModels.first, first.section == .todayMovies {
+            self.diffableDataSources.applySnapshotUsingReloadData(snapshot)
+        } else {
+            self.diffableDataSources.apply(snapshot) { [weak self] in
+                self?.refreshEnd.accept(())
+            }
+        }
     }
 }
 
@@ -151,13 +215,14 @@ extension CinemaMainViewController {
                     return CinemaCollectionView.recentSearchSection()
                 }
             case .todayMovies:
+                let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: .todayMovies)
                 return CinemaCollectionView.todayMovieSection()
             }
         }, configuration: config)
     }
     
     private func diffableDataSourceSetting() {
-        diffableDataSources = UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, item in
+        diffableDataSources = UICollectionViewDiffableDataSource(collectionView: collectionView) { [weak self] collectionView, indexPath, item in
             switch item {
             case let .user(user):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileContainerCell.id, for: indexPath) as? ProfileContainerCell else { return UICollectionViewCell() }
@@ -166,26 +231,56 @@ extension CinemaMainViewController {
                 
             case .recentSearch(let searchModel):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecentSearchResultCell.id, for: indexPath) as? RecentSearchResultCell else { return UICollectionViewCell() }
+                
                 cell.setText(searchModel.word)
+                
+                if let self {
+                    cell.deleteButton.rx.tap
+                        .map { _ in searchModel }
+                        .bind(to: deleteRecentSearchModel)
+                        .disposed(by: cell.disposeBag)
+                }
+                
                 return cell
                 
             case .emptyRecentSearch:
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecentSearchEmptyCell.id, for: indexPath) as? RecentSearchEmptyCell else { return UICollectionViewCell() }
+                
                 return cell
                 
             case let .todayMovie(movieModel):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TodayMovieItemCell.id, for: indexPath) as? TodayMovieItemCell else { return UICollectionViewCell() }
                 cell.set(with: movieModel)
+                if let self {
+                    cell.heartButton.rx.tap
+                        .withUnretained(cell)
+                        .map { cell, _ in
+                            (movieModel,!cell.heartButton.isSelected)
+                        }
+                        .do(onNext: { [weak cell] value in
+                            let (_, isFavorite) = value
+                            cell?.heartButton.isSelected = isFavorite
+                        })
+                        .bind(to: favoriteButtonTapped)
+                        .disposed(by: cell.disposeBag)
+                }
                 return cell
             }
         }
         
-        diffableDataSources.supplementaryViewProvider = { collectionView, kind, indexPath in
+        diffableDataSources.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
             if kind == UICollectionView.elementKindSectionHeader {
                 if indexPath.section == 1 || indexPath.section == 2 {
                     let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeaderView.id, for: indexPath) as! SectionHeaderView
                     header.setTitle(indexPath.section == 1 ? "최근검색어" : "오늘의 영화")
                     header.setButtonTitle("전체삭제")
+                    
+                    if indexPath.section == 1, let self {
+                        header.deleteButton.rx.tap
+                            .bind(to: self.deleteAllRecentSearchModel)
+                            .disposed(by: disposeBag)
+                    }
+                    
                     header.setDeleteButtonHidden(indexPath.section != 1)
                     return header
                 }

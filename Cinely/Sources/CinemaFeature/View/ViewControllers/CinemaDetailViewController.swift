@@ -9,21 +9,17 @@ import UIKit
 import Design
 import RxCocoa
 import RxSwift
-import HwanMacros
+
 import Kingfisher
 
-@Logging
+
 final class CinemaDetailViewController: BaseViewController {
     
-    struct Dependency {
-        let vmDependency: CinemaDetailViewModel.Dependency
-        let movieModel: TodayMovieModel
-    }
-    
-    static func create(with dependency: Dependency) -> CinemaDetailViewController {
+    static func create(with dependency: CinemaDetailViewModel) -> CinemaDetailViewController {
         let vc = CinemaDetailViewController()
-        vc.detailViewModel = CinemaDetailViewModel(dependency: dependency.vmDependency)
-        vc.movieModel = dependency.movieModel
+        vc.detailViewModel = dependency
+        vc.movieModel = dependency.movieState.movieModel
+        vc.isFavoriteTapped = BehaviorRelay<Bool>(value: vc.movieModel.favorite)
         return vc
     }
     
@@ -31,20 +27,23 @@ final class CinemaDetailViewController: BaseViewController {
     fileprivate var detailViewModel: CinemaDetailViewModel!
     private lazy var collectionView    = CinemaDetailCollectionView(layout: compositionalLayout())
     private let pageControl = UIPageControl()
+    private var indicatorContainerView = IndicatorContainerView()
     
     private var movieModel: TodayMovieModel!
     private var isSynopsisSectionExpanded: Bool = false
-    private var isSynopsisPossibleExpand: Bool = false
+    private var isFavoriteTapped: BehaviorRelay<Bool>!
     private var disposeBag = DisposeBag()
     
     deinit {
         KingfisherManager.shared.cache.clearMemoryCache()
-        logger.log(level: .fault, "CinemaDetailVC deinit Kingfisher Memory Clean")
     }
     
     // MARK: EVENT
-    private let moreButtonTapped = PublishSubject<Void>()
-    private let synopsisHeaderState = BehaviorSubject<(String, Bool)>(value: ("More", true))
+    private let moreButtonTapped = PublishRelay<Void>()
+    private let synopsisHeaderState = BehaviorRelay<(String, Bool)>(value: ("More", true))
+    private let viewDidLoad = PublishRelay<Void>()
+    private let retryTrigger = PublishRelay<Void>()
+    private let reloadComplete = PublishRelay<Void>()
     
     override func addAttributes() {
         setDefaultBackground()
@@ -53,16 +52,34 @@ final class CinemaDetailViewController: BaseViewController {
         navigationSetting()
         diffableDataSourceSetting()
         pageSetting()
+        setIndicator(indicator: indicatorContainerView)
         collectionView.dataSource = diffableDataSources
     }
     
     private func navigationSetting() {
-        self.navigationItem.title = "Cinely"
-        self.navigationItem.rightBarButtonItem
-        = UIBarButtonItem(image: Icons.heart?.withTintColor(Color.green.withAlphaComponent(0.6)),
-                          style: .plain,
-                          target: self,
-                          action: #selector(moveToSearchDetail(_:)))
+        let likeBarButtonItem = UIBarButtonItem(
+            image: Icons.heart?.withTintColor(Color.green.withAlphaComponent(0.6)),
+            style: .plain,
+            target: nil,
+            action: nil
+        )
+        
+        self.navigationItem.rightBarButtonItem = likeBarButtonItem
+
+        isFavoriteTapped
+            .subscribe(onNext: { [weak likeBarButtonItem] isSelected in
+                if let likeBarButtonItem {
+                    let icon = isSelected ? Icons.heartFill : Icons.heart
+                    likeBarButtonItem.image = icon?.withTintColor(Color.green.withAlphaComponent(0.6))
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        likeBarButtonItem.rx.tap
+            .withLatestFrom(isFavoriteTapped)
+            .map { value in !value }
+            .bind(to: isFavoriteTapped)
+            .disposed(by: disposeBag)
     }
     
     private func pageSetting() {
@@ -94,6 +111,21 @@ final class CinemaDetailViewController: BaseViewController {
     }
     
     override func binding() {
+        viewAction()
+        
+        let output = detailViewModel.transform(input: .init(
+            viewDidLoad: viewDidLoad.asObservable(),
+            retryTrigger: retryTrigger.asObservable(),
+            isFavoriteTapped: isFavoriteTapped.asObservable(),
+            reloadComplete: reloadComplete.asObservable()
+        ))
+        
+        outputBinding(output: output)
+        
+        viewDidLoad.accept(())
+    }
+    
+    private func viewAction() {
         pageControl.rx.controlEvent(.valueChanged)
             .subscribe(with: self, onNext: { vc, value in
                 let indexPath = IndexPath(item: vc.pageControl.currentPage, section: 0)
@@ -106,23 +138,56 @@ final class CinemaDetailViewController: BaseViewController {
                 let origin = vc.isSynopsisSectionExpanded
                 vc.isSynopsisSectionExpanded = !origin
                 if vc.isSynopsisSectionExpanded {
-                    vc.synopsisHeaderState.onNext(("Hide", true))
+                    vc.synopsisHeaderState.accept(("Hide", true))
                 } else {
-                    vc.synopsisHeaderState.onNext(("More", true))
+                    vc.synopsisHeaderState.accept(("More", true))
                 }
                 guard var snapshot = vc.diffableDataSources?.snapshot() else { return }
                 let synopsisItems = snapshot.itemIdentifiers(inSection: .synopsis)
                 snapshot.reconfigureItems(synopsisItems)
+                
                 vc.diffableDataSources?.apply(snapshot, animatingDifferences: false)
             })
             .disposed(by: disposeBag)
-        
-        let output = detailViewModel.transform(input: .init())
+    }
+    
+    private func outputBinding(output: CinemaDetailViewModel.Output) {
+        output.isLoading
+            .drive(with: self, onNext: { vc, value in
+                if value {
+                    vc.indicatorContainerView.isHidden = false
+                    vc.indicatorContainerView.indicator.startAnimating()
+                } else {
+                    vc.indicatorContainerView.isHidden = true
+                    vc.indicatorContainerView.indicator.stopAnimating()
+                }
+            })
+            .disposed(by: disposeBag)
         
         output.movieDetailModels
+            .filter { !$0.isEmpty }
             .drive(with: self, onNext: { vc, sectionAndItems in
                 vc.apply(sectionAndModels: sectionAndItems)
             })
+            .disposed(by: disposeBag)
+        
+        output.lazyLoadingFavorite
+            .skip(1)
+            .drive(with: self, onNext: { vc, isFavorite in
+                let icon = isFavorite ? Icons.heartFill : Icons.heart
+                self.navigationItem.rightBarButtonItem?.image
+                =
+                icon?.withTintColor(Color.green.withAlphaComponent(0.6))
+            })
+            .disposed(by: disposeBag)
+        
+        output.errorAlertTrigger
+            .map { [weak self] errMessage in
+                var errMessage = errMessage
+                errMessage.retry = { self?.retryTrigger.accept(()) }
+                return errMessage
+            }
+            .drive(errorRetryAlert)
             .disposed(by: disposeBag)
     }
     
@@ -139,6 +204,8 @@ final class CinemaDetailViewController: BaseViewController {
                 pageControl.numberOfPages = items.count
             }
         }
+        
+        self.reloadComplete.accept(())
         
         self.diffableDataSources.apply(snapshot) { [weak self] in
             self?.pageControl.isHidden = sectionAndModels.isEmpty
@@ -215,7 +282,6 @@ extension CinemaDetailViewController {
         
         diffableDataSources.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
             guard let self else { return nil }
-            
             if kind == UICollectionView.elementKindSectionHeader {
                 if indexPath.section == 1 || indexPath.section == 2 {
                     let header = collectionView.dequeueReusableSupplementaryView(
@@ -243,28 +309,11 @@ extension CinemaDetailViewController {
                     ofKind: UICollectionView.elementKindSectionFooter,
                     withReuseIdentifier: BackDropFooterView.id, for: indexPath
                 ) as! BackDropFooterView
-                
-                // guard let dataSource = self.diffableDataSources else {
-                //     return UICollectionReusableView()
-                // }
-                
                 footer.set(
                     date: self.movieModel.releaseDate,
                     rating: self.movieModel.voteAverage,
                     genres: self.movieModel.genres.joined(separator: ", ")
                 )
-                // let sectionIdentifier = dataSource.snapshot().sectionIdentifiers[indexPath.section]
-                // let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: sectionIdentifier)
-                // if let firstItem = itemsInSection.first {
-                //
-                //     if case let .pagingHeader(movieDetailModel) = firstItem {
-                //         footer.set(
-                //             date: movieDetailModel.movieModel.releaseDate,
-                //             rating: movieDetailModel.movieModel.voteAverage,
-                //             genres: movieDetailModel.movieModel.genres.joined(separator: ", ")
-                //         )
-                //     }
-                // }
                 return footer
             }
             return nil

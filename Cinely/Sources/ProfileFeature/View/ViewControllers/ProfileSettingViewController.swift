@@ -15,6 +15,16 @@ final class ProfileSettingViewController: BaseViewController {
     
     private let tableView = UITableView()
     private let list = ["자주 묻는 질문", "1:1 문의" , "알림 설정", "탈퇴 하기"]
+
+    var appState: AppState!
+    var coordinator: ProfileSettingCoordinator!
+    
+    static func create(appState: AppState, coordinator: ProfileSettingCoordinator) -> ProfileSettingViewController {
+        let vc = ProfileSettingViewController()
+        vc.appState = appState
+        vc.coordinator = coordinator
+        return vc
+    }
     
     override func addAttributes() {
         setDefaultBackground()
