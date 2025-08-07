@@ -10,7 +10,13 @@ import UIKit
 final class BottomLayerTextField: UITextField {
     
     var btBorderHeight: CGFloat = 1
-    var btBorderColor: CGColor = Color.white.cgColor
+    var btBorderColor: CGColor = Color.white.cgColor {
+        didSet {
+            if oldValue != self.btBorderColor {
+                self.setNeedsDisplay()
+            }
+        }
+    }
     
     private var bottomLayer: CALayer! = nil
     
@@ -22,6 +28,7 @@ final class BottomLayerTextField: UITextField {
         }
         self.textAlignment = .left
         self.font = Font.regular14
+        self.textColor = Color.white
         self.tintColor = Color.white
     }
     
@@ -29,19 +36,19 @@ final class BottomLayerTextField: UITextField {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        if bottomLayer == nil {
-            bottomLayer = CAShapeLayer()
-            bottomLayer.frame = CGRect(
-                x: -8,
-                y: self.bounds.height - btBorderHeight,
-                width: self.bounds.width + 8.0,
-                height: btBorderHeight
-            )
-            bottomLayer.backgroundColor = btBorderColor
-            self.layer.addSublayer(bottomLayer)
+    override func draw(_ rect: CGRect) {
+        if bottomLayer != nil {
+            bottomLayer.removeFromSuperlayer()
         }
+        bottomLayer = CAShapeLayer()
+        bottomLayer.frame = CGRect(
+            x: -8,
+            y: self.bounds.height - btBorderHeight,
+            width: self.bounds.width + 8.0,
+            height: btBorderHeight
+        )
+        bottomLayer.backgroundColor = btBorderColor
+        self.layer.addSublayer(bottomLayer)
     }
     
     @available(iOS 17.0, *)
