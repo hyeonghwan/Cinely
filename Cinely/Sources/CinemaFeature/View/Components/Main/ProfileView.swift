@@ -29,18 +29,6 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
-    func set(with user: User) {
-        profileHeaderView.nicknameLabel.text = user.nickname
-        profileHeaderView.signUpDateLabel.text = user.signUpDate
-        let text = String(user.likeCount) + "개의 무비박스 보관중"
-        profileHeaderView.movieLikeBoxButton.setAttributedTitle(
-            NSAttributedString(string: "\(text)",
-                               attributes: [.font : Font.semiBold17,
-                                            .foregroundColor : Color.white]),
-            for: .normal
-        )
-    }
-    
     final class ProfileView: BaseView {
         private(set) var nicknameLabel   = UILabel()
         private(set) var signUpDateLabel = UILabel()
