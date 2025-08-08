@@ -19,7 +19,7 @@ final class AppDependencyFactory {
         let networkManager: NetworkManager = DefaultNetworkManager()
         let networkState = NWState()
         
-        let storage: PersistentStorage = DefaultAppStorage()
+        let storage: PersistentStorage = DefaultPersistentStorage()
         let appState = DefaultAppState(
             dependency: DefaultAppState.Dependency(
                 appProvider: DefaultAppProvider(

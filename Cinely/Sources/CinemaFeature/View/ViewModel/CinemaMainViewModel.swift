@@ -162,6 +162,12 @@ final class CinemaMainViewModel: ViewModel {
         // MARK: Global State Binding
         appStateBinding()
         
+        // MARK: Error Handle
+        trendingMovieProvider
+            .errorMessageSubscription
+            .compactMap { errMessage in errMessage == nil ? ErrorMessage.default : errMessage }
+            .bind(to: alertTrigger)
+            .disposed(by: disposeBag)
         input.favoriteButtonTapped
             .groupBy { movie, isFavorite in movie.id }
             .flatMap { group -> Observable<(TodayMovieModel, Bool)> in

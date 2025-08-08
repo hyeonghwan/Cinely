@@ -62,7 +62,7 @@ final class CinemaDetailViewModel {
     private let errorAlertTrigger = PublishRelay<ErrorMessage>()
     private let isLoading = BehaviorRelay<Bool>(value: true)
     
-    func transform(input: Input) -> Output {        
+    func transform(input: Input) -> Output {
         appState.favoriteMoviesState
             .subscribe(with: self, onNext: { vm, value in
                 var model = vm.movieState.movieModel
@@ -75,6 +75,12 @@ final class CinemaDetailViewModel {
                 vm.lazyLoadingFavorite.accept(isFavorite)
             })
             .disposed(by: disposeBag)
+        
+        movieImageProvider.errorMessageSubscription
+            .compactMap { $0 }
+            .bind(to: errorAlertTrigger)
+            .disposed(by: disposeBag)
+        
         input.isFavoriteTapped
             .skip(1)
             .subscribe(with: self, onNext: { vm, isFavorite in
