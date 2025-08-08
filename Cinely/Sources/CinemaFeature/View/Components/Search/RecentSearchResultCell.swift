@@ -12,7 +12,7 @@ import RxSwift
 final class RecentSearchResultCell: BaseCollectionViewCell, CellIdentifialble {
     private let searchLabel = UILabel()
     private(set) var deleteButton = UIButton()
-    var disposeBag = DisposeBag()
+    private(set) var disposeBag = DisposeBag()
     
     override func addChild() {
         self.contentView.addSubview(searchLabel)

@@ -33,7 +33,12 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         profileHeaderView.nicknameLabel.text = user.nickname
         profileHeaderView.signUpDateLabel.text = user.signUpDate
         let text = String(user.likeCount) + "개의 무비박스 보관중"
-        profileHeaderView.movieLikeBoxButton.setTitle(text, for: .normal)
+        profileHeaderView.movieLikeBoxButton.setAttributedTitle(
+            NSAttributedString(string: "\(text)",
+                               attributes: [.font : Font.semiBold17,
+                                            .foregroundColor : Color.white]),
+            for: .normal
+        )
     }
     
     final class ProfileView: BaseView {
@@ -41,6 +46,17 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         private(set) var signUpDateLabel = UILabel()
         private(set) var angleImageView  = UIButton()
         private(set) var movieLikeBoxButton  = UIButton()
+        
+        func set(with user: User) {
+            self.nicknameLabel.text = user.nickname
+            self.signUpDateLabel.text = user.signUpDate
+            let text = String(user.likeCount) + "개의 무비박스 보관중"
+            self.movieLikeBoxButton.setAttributedTitle(
+                NSAttributedString(string: "\(text)",
+                                   attributes: [.font : Font.semiBold17, .foregroundColor : Color.white]),
+                for: .normal
+            )
+        }
         
         override func addAttributes() {
             self.backgroundColor = Color.white.withAlphaComponent(0.1)
@@ -106,4 +122,17 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         }
     }
 }
+
+
+#if canImport(RxSwift)
+import RxSwift
+
+extension ProfileView {
+    var binder: Binder<User> {
+        Binder<User>(self) { view, user in
+            view.set(with: user)
+        }
+    }
+}
     
+#endif
