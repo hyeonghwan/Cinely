@@ -231,9 +231,9 @@ final class CinemaSearchViewModel {
         let newPageState = PagingState(currentPage: page, queryText: pagingState.queryText, total: totalPage)
         
         var models = (pagedResponse.results ?? []).map { (dto: MovieSearchResponseDTO) in
-            SearchItem.movie(dto.toVM(genres: genres, configuration: configuration))
+            SearchItem.movie(dto.toVM(favoriteIDs: favoriteIDs, genres: genres, configuration: configuration))
         }
-        models.append(newPageState.isLast ? .last : .refresh)
+        models.append(newPageState.isLast ? SearchItem.last : SearchItem.refresh)
         
         var currentList = self.searchMovieList.value
         currentList.removeLast()
