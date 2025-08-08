@@ -31,7 +31,7 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
         movieImageView.backgroundColor = Color.white
         
         titleLabel.textColor = Color.white
-        titleLabel.font = Font.bold24
+        titleLabel.font = Font.bold21
         descriptionLabel.textColor = Color.white
         descriptionLabel.font = Font.light14
         descriptionLabel.numberOfLines = 3
