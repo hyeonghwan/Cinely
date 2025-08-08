@@ -7,25 +7,29 @@
 
 import UIKit
 import Design
+import RxSwift
+import HwanMacros
 
-final class SearchViewModel {
-    var models: [TodayMovieModel] = TodayMovieModel.dummyList
-}
-
+@Logging
 final class CinemaMovieSearchVIewController: BaseViewController {
+    
+    static func create(with dependency: CinemaSearchViewModel) -> CinemaMovieSearchVIewController {
+        let vc = CinemaMovieSearchVIewController()
+        vc.searchViewModel = dependency
+        return vc
+    }
+    
+    private var searchViewModel: CinemaSearchViewModel!
     private let tableView = CinemaSearchTableView()
-    private let viewModel = SearchViewModel()
+    private let searchController = UISearchController(searchResultsController: nil)
     
     override func addAttributes() {
         setDefaultBackground()
         searchBarSetting()
-        tableView.delegate = self
-        tableView.dataSource = self
         tableView.estimatedRowHeight = 200
     }
     
     private func searchBarSetting() {
-        let searchController = UISearchController(searchResultsController: nil)
         searchController.searchBar.placeholder = "영화 제목을 검색해주세요"
         searchController.searchBar.searchTextField.font = Font.regular14
         self.navigationItem.title = "영화 검색"
@@ -35,8 +39,11 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        DispatchQueue.main.async {
-            self.navigationItem.searchController?.searchBar.becomeFirstResponder()
+        DispatchQueue.main.async { [weak self] in
+            if let self, let text = self.searchController.searchBar.text, !text.isEmpty {
+                return
+            }
+            self?.navigationItem.searchController?.searchBar.becomeFirstResponder()
         }
     }
     
@@ -54,37 +61,135 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         ])
     }
     
+    private let pagingFinishInput = PublishSubject<Void>()
+    private let favoriteButtonTapped = PublishSubject<(row: Int, flag: Bool)>()
+    private var disposeBag = DisposeBag()
+    
     override func binding() {
+        let searchSumit = searchController
+            .searchBar.rx.searchButtonClicked
+             .withUnretained(self)
+             .compactMap { vc, _ in vc.searchController.searchBar.text }
+        
+        let pagingRequest = tableView.rx.didScroll
+            .throttle(.milliseconds(600), latest: true, scheduler: MainScheduler.instance)
+            .withUnretained(self)
+            .map { vc, _ -> PagingValue in vc.getTableViewPagingValue() }
+            .filter(\.isPagingPossible)
+        
+        let output = searchViewModel.transform(
+            input: CinemaSearchViewModel.Input(
+                submit: searchSumit,
+                paging: pagingRequest.map(\.void),
+                pagingFinish: pagingFinishInput.asObservable(),
+                favoriteButtonTapped: favoriteButtonTapped.asObservable()
+            )
+        )
+        
+        tableView.rx.modelSelected(CinemaSearchViewModel.SearchItem.self)
+            .subscribe(with: self, onNext: { vc, model in
+                if case let .movie(movieModel) = model {
+                    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+                        return
+                    }
+                    let detailVC = CinemaDetailViewController.create(
+                        with: .init(
+                            vmDependency: CinemaDetailViewModel.Dependency.init(
+                                appState: appDelegate.appState,
+                                appStorage: appDelegate.storage,
+                                movieImageProvider: DefaultMovieImageProvider(networkManager: appDelegate.networkManager),
+                                movieState: CinemaDetailViewModel
+                                    .MovieState(
+                                        movieModel: movieModel
+                                    )
+                            ),
+                            movieModel: movieModel)
+                    )
+                    vc.navigationController?.pushViewController(detailVC, animated: true)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        searchResultBinding(output: output)
+    }
+    
+    private func searchResultBinding(output: CinemaSearchViewModel.Output) {
+        output.results
+            .drive(tableView.rx.items) { tableView, row, model in
+                switch model {
+                case .empty:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaEmptyCell.id) as? CinemaEmptyCell else { fatalError() }
+                    cell.separatorInset = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
+                    cell.selectionStyle = .none
+                    return cell
+                    
+                case let .movie(model):
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaSearchCell.id) as? CinemaSearchCell else {
+                        fatalError()
+                    }
+                    cell.set(with: model)
+                    
+                    cell.likeButton.rx.tap
+                        .subscribe(with: cell, onNext: { [weak self] cell, _ in
+                            let origin = cell.likeButton.isSelected
+                            let (row, flag) = (row, !origin)
+                            self?.favoriteButtonTapped.onNext((row, flag))
+                        })
+                        .disposed(by: cell.disposeBag)
+                    
+                    cell.selectionStyle = .none
+                    return cell
+                    
+                case .refresh:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: RefreshCell.id) as? RefreshCell else {
+                        fatalError()
+                    }
+                    output.isPagingLoading
+                        .drive(onNext: { value in
+                            if value {
+                                cell.refreshIndicator.startAnimating()
+                            } else {
+                                cell.refreshIndicator.stopAnimating()
+                            }
+                        })
+                        .disposed(by: cell.disposeBag)
+                    return cell
+                case .last:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: LastEmptyCell.id) as? LastEmptyCell else {
+                        fatalError()
+                    }
+                    return cell
+                }
+            }
+            .disposed(by: disposeBag)
+        
+        output.results
+            .drive(with: self, onNext: { vc, _ in
+                DispatchQueue.main.async {
+                    vc.pagingFinishInput.onNext(())
+                }
+            })
+            .disposed(by: disposeBag)
     }
 }
 
-extension CinemaMovieSearchVIewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
-        UITableView.automaticDimension
-    }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.models.isEmpty ? 1 : viewModel.models.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if viewModel.models.isEmpty {
-            guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaEmptyCell.id) as? CinemaEmptyCell else {
-                fatalError()
-            }
-            cell.separatorInset = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
-            cell.selectionStyle = .none
-            return cell
+typealias PagingValue = CinemaMovieSearchVIewController.PagingValue
+extension CinemaMovieSearchVIewController {
+    struct PagingValue {
+        let contentOffsetY: CGFloat
+        let contentHeight: CGFloat
+        let boundsHeight: CGFloat
+        var void: Void = ()
+        var isPagingPossible: Bool {
+            contentOffsetY > (contentHeight * 3) / 4
         }
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaSearchCell.id) as? CinemaSearchCell else {
-            fatalError()
-        }
-        cell.set(with: viewModel.models[indexPath.row])
-        cell.selectionStyle = .none
-        return cell
+    }
+    
+    func getTableViewPagingValue() -> PagingValue {
+        PagingValue(
+            contentOffsetY: self.tableView.contentOffset.y,
+            contentHeight: self.tableView.contentSize.height,
+            boundsHeight: self.tableView.bounds.height
+        )
     }
 }

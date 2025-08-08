@@ -15,8 +15,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow()
         window.windowScene = windowScene
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
         
-        let cinemaMainVC = CinemaMainViewController()
+        let cinemaMainVC = CinemaMainViewController.create(with:
+                .init(
+                    dependency: .init(
+                        appState: appDelegate.appState,
+                        appStorage: appDelegate.storage,
+                        trendingMovieProvider: DefaultTrendingMovieProvider(
+                            networkManager: appDelegate.networkManager
+                        )
+                    )
+                )
+        )
         cinemaMainVC.tabBarItem = UITabBarItem(title: "CINEMA", image: Icons.popCorn, tag: 0)
         let cinemaNav = UINavigationController(rootViewController: cinemaMainVC)
         

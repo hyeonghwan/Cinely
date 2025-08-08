@@ -16,10 +16,11 @@ final class LikeButton: BaseButton {
         let selected = Icons.heartFill
         self.setImage(normal, for: .normal)
         self.setImage(selected, for: .selected)
-        let pointSize: CGFloat = 20
+        let pointSize: CGFloat = 23
         let imageConfig = UIImage.SymbolConfiguration(pointSize: pointSize)
         var config = UIButton.Configuration.plain()
         config.preferredSymbolConfigurationForImage = imageConfig
+        config.background.backgroundColor = .clear
         self.configuration = config
     }
 }

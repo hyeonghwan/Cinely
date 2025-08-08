@@ -11,7 +11,7 @@ import Design
 typealias ProfileView = ProfileContainerCell.ProfileView
 
 final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
-    private let profileHeaderView = ProfileView()
+    private(set) var profileHeaderView = ProfileView()
     
     override func addChild() {
         self.contentView.addSubview(profileHeaderView)
@@ -29,11 +29,18 @@ final class ProfileContainerCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
+    func set(with user: User) {
+        profileHeaderView.nicknameLabel.text = user.nickname
+        profileHeaderView.signUpDateLabel.text = user.signUpDate
+        let text = String(user.likeCount) + "개의 무비박스 보관중"
+        profileHeaderView.movieLikeBoxButton.setTitle(text, for: .normal)
+    }
+    
     final class ProfileView: BaseView {
-        private let nicknameLabel   = UILabel()
-        private let signUpDateLabel = UILabel()
-        private let angleImageView  = UIButton()
-        private let movieLikeBoxButton  = UIButton()
+        private(set) var nicknameLabel   = UILabel()
+        private(set) var signUpDateLabel = UILabel()
+        private(set) var angleImageView  = UIButton()
+        private(set) var movieLikeBoxButton  = UIButton()
         
         override func addAttributes() {
             self.backgroundColor = Color.white.withAlphaComponent(0.1)

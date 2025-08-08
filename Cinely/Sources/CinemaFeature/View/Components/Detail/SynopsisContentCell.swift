@@ -10,7 +10,8 @@ import Design
 
 final class SynopsisContentCell: BaseCollectionViewCell, CellIdentifialble {
     
-    private let descriptionLabel = UILabel()
+    private(set) var descriptionLabel = UILabel()
+    
     
     override func addAttributes() {
         descriptionLabel.font = Font.regular14
@@ -34,8 +35,8 @@ final class SynopsisContentCell: BaseCollectionViewCell, CellIdentifialble {
         ])
     }
     
-    func set(description: String) {
+    func set(description: String, isSynopsisSectionExpanded: Bool?) {
         self.descriptionLabel.text = description
+        self.descriptionLabel.numberOfLines = (isSynopsisSectionExpanded ?? false) ? 0 : 3
     }
 }
-

@@ -9,7 +9,20 @@ import UIKit
 
 @main
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-
+    
+    let networkManager: NetworkManager = DefaultNetworkManager.shared
+    
+    let storage: PersistentStorage = DefaultAppStorage()
+    lazy var movieSearchProvider: MovieSearchProvider = DefaultMovieSearchProvider(networkManager: networkManager)
+    lazy var appState = DefaultAppState(
+        dependency: .init(
+            appProvider: DefaultAppProvider(
+                networkManager: networkManager
+            ),
+            appStorage: storage
+        )
+    )
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         return true
     }

@@ -28,7 +28,7 @@ final class MovieImageView: UIImageView {
         } else {
             self.image = Icons.filmFill?
                 .withTintColor(
-                    .gray,
+                    .white,
                     renderingMode: .alwaysOriginal
                 )
         }
