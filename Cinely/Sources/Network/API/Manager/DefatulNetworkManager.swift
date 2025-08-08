@@ -8,7 +8,6 @@
 import Foundation
 import Alamofire
 import RxSwift
-import HwanMacros
 
 final class DefaultNetworkManager: NetworkManager {    
     private let defaultDecorder = JSONDecoder()
