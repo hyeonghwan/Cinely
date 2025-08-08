@@ -77,12 +77,9 @@ final class CinemaMainViewController: BaseViewController {
     private let deleteAllRecentSearchModel = PublishSubject<Void>()
     private let reloadComplete = PublishRelay<Void>()
     private let todayMovieRetryTrigger = PublishRelay<Void>()
-    
-    
     private let refreshEnd = PublishRelay<Void>()
     
     override func binding() {
-        
         self.navigationItem.rightBarButtonItem?.rx.tap
             .subscribe(with: self, onNext: { vc, _ in
                 vc.coordinator?.moveToSearch()
@@ -206,7 +203,7 @@ extension CinemaMainViewController {
             switch section {
             case .header:
                 return CinemaCollectionView.headerSection()
-            
+                
             case .recentSearchResult:
                 let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: .recentSearchResult)
                 if let first = itemsInSection.first, first == .emptyRecentSearch {

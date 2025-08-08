@@ -61,6 +61,37 @@ final class CinemaSearchViewModel {
             .disposed(by: disposeBag)
         
         input.favoriteButtonTapped
+            .withLatestFrom(searchMovieList) { list, movies -> (movie: TodayMovieModel, isFavorite: Bool)? in
+                let (row, isFavorite) = list
+                return if case let .movie(movie) = movies[row] {
+                    (movie, isFavorite)
+                } else {
+                    nil
+                }
+            }
+            .compactMap { $0 }
+            .bind(to: appState.favoriteListBinder)
+            .disposed(by: disposeBag)
+        
+        appState.favoriteMoviesState.map { $0.map { model in model.id }}
+            .filter { [weak self] _ in (self?.viewDidLoaded ?? false) }
+            .withUnretained(self)
+            .map { vm, favoritesIDs in
+                let searchItemList = vm.searchMovieList.value
+                return searchItemList.map { searchItem in
+                    if case let .movie(movie) = searchItem {
+                        var movie = movie
+                        movie.favorite = favoritesIDs.contains(movie.id) ? true : false
+                        return  .movie(movie)
+                    } else {
+                        return searchItem
+                    }
+                }
+            }
+            .bind(to: searchMovieList)
+            .disposed(by: disposeBag)
+        
+        input.favoriteButtonTapped
             .withLatestFrom(searchMovieList) { path, movies in
                 let (row, flag) = path
                 var movies = movies
@@ -85,21 +116,22 @@ final class CinemaSearchViewModel {
         
         input.submit
             .withUnretained(self)
-            .flatMap { (vm, query) -> Observable<(MovieSearchApiResource.ResponseType, String)> in
+            .flatMap { (vm, query) -> Observable<(MovieSearchApiResource.ResponseType, String, [Int])> in
                 Observable.zip(
                     vm.movieSearchProvider.search(page: 1, query: query),
-                    Observable<String>.just(query)
+                    Observable<String>.just(query),
+                    vm.appState.favoriteMoviesState.map { $0.map { model in model.id }}
                 )
             }
             .withLatestFrom(latestConfig) { dto, state in (dto, state) }
             .subscribe(with: self, onNext: { vm, tuple in
-                let ((paged, query), (genres, config)) = tuple
+                let ((paged, query, favoriteIDs), (genres, config)) = tuple
                 vm.loadSearchResult(
                     pagedResponse: paged,
                     query: query,
                     genres: genres,
                     configuration: config,
-                    favoriteIDs: []
+                    favoriteIDs: Set<Int>(favoriteIDs)
                 )
             })
             .disposed(by: disposeBag)
@@ -107,7 +139,8 @@ final class CinemaSearchViewModel {
         let pagingConfig = Observable.combineLatest(
             appState.genresState,
             appState.configurationState,
-            self.currentPageState
+            self.currentPageState,
+            appState.favoriteMoviesState.map { $0.map { model in model.id } }
         )
         
         input.paging
@@ -119,7 +152,7 @@ final class CinemaSearchViewModel {
             .withUnretained(self)
             .flatMap
         { vm, currentState -> Observable<(PagedResponseDTO<MovieSearchResponseDTO>, [Int: Genre], ImageConfiguration, PagingState, Set<Int>)> in
-            var (genres, configuration, pagingState) = currentState
+            var (genres, configuration, pagingState, favoriteIDs) = currentState
             guard let nextPage = pagingState.mutateNext() else { return .empty() }
             
             let search = vm.movieSearchProvider.search(
@@ -138,7 +171,7 @@ final class CinemaSearchViewModel {
                 Observable.just(genres),
                 Observable.just(configuration),
                 Observable.just(pagingState),
-                Observable<Set<Int>>.just([])
+                Observable.just(Set<Int>(favoriteIDs))
             )
         }
         .subscribe(
@@ -170,7 +203,8 @@ final class CinemaSearchViewModel {
     {
         let (page, totalPage) = (pagedResponse.page ?? 1, pagedResponse.totalPages ?? 1)
         let models: [SearchItem] = (pagedResponse.results ?? []).map { value in
-            SearchItem.movie(value.toVM(genres: genres,
+            SearchItem.movie(value.toVM(favoriteIDs: favoriteIDs,
+                                        genres: genres,
                                         configuration: configuration))
         }
         let newPageState = PagingState(currentPage: page, queryText: query, total: totalPage)

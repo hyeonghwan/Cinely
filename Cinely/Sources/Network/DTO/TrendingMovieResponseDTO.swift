@@ -69,14 +69,14 @@ extension TrendingMovieResponseDTO {
         )
     }
     
-    func toVM(genres: [Int: Genre], configuration: ImageConfiguration) -> TodayMovieModel {
+    func toVM(isFavorite: Bool, genres: [Int: Genre], configuration: ImageConfiguration) -> TodayMovieModel {
         let overviewIfEmpty = "줄거리를 제공하지 않습니다"
         return TodayMovieModel(
             id: self.id,
             postImage: configuration.getPosterPathSizeW500(filePath: self.posterPath ?? ""),
             title: self.title ?? "N/A",
             description: (self.overview ?? overviewIfEmpty).isEmpty ? overviewIfEmpty : "\(self.overview ?? overviewIfEmpty)",
-            favorite: false,
+            favorite: isFavorite,
             genres: self.genreIds?.compactMap { genres[$0] } ?? ["N/A"],
             voteAverage: self.voteAverage ?? 0,
             releaseDate: self.releaseDate ?? ""

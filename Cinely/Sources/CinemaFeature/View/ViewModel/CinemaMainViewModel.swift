@@ -162,6 +162,15 @@ final class CinemaMainViewModel: ViewModel {
         // MARK: Global State Binding
         appStateBinding()
         
+        input.favoriteButtonTapped
+            .groupBy { movie, isFavorite in movie.id }
+            .flatMap { group -> Observable<(TodayMovieModel, Bool)> in
+                group.debounce(.milliseconds(500), scheduler: MainScheduler.instance)
+            }
+            .map { $0 }
+            .bind(to: appState.favoriteListBinder)
+            .disposed(by: disposeBag)
+        
         input.todayMovieRetryTrigger
             .withUnretained(self)
             .do(onNext: { vm, _ in vm.isLoading.accept(true) })
@@ -217,6 +226,19 @@ final class CinemaMainViewModel: ViewModel {
             }
             .bind(to: sections)
             .disposed(by: disposeBag)
+            
+        appState.favoriteMoviesState.map { $0.map { model in model.id }}
+            .filter { [weak self] _ in (self?.viewDidLoaded ?? false) }
+            .withUnretained(self)
+            .map { vm, favoritesIDs in
+                let sectionItemList = vm.sections.value
+                let favoriteSet = Set<Int>(favoritesIDs)
+                return sectionItemList.map { sectionItem in
+                    sectionItem.mutate(favoriteSet: favoriteSet)
+                }
+            }
+            .bind(to: sections)
+            .disposed(by: disposeBag)
         
         appState.searchResultState
             .withUnretained(self)
@@ -261,13 +283,16 @@ final class CinemaMainViewModel: ViewModel {
         return Observable.zip(
             trendingMovieProvider.fetchTrendingMovies(),
             appState.genresState,
-            appState.configurationState
+            appState.configurationState,
+            appState.favoriteMoviesState.map { value in value.map(\.id)}
         )
         .compactMap { value in
-            let (trendingDTO, genres, configuration) = value
+            let (trendingDTO, genres, configuration, favoriteIDandFlags) = value
+            let favoriteSets = Set<Int>(favoriteIDandFlags)
             return if let movieModels = trendingDTO.results {
                 movieModels.map { responseDTO in
                     responseDTO.toVM(
+                        isFavorite: favoriteSets.contains(responseDTO.id),
                         genres: genres,
                         configuration: configuration
                     )
@@ -305,12 +330,15 @@ final class CinemaMainViewModel: ViewModel {
         Observable.zip(
             appState.genresState.take(1),
             appState.configurationState.take(1),
+            appState.favoriteMoviesState.take(1).map { movie in movie.map(\.id)},
             Observable<PagedResponseDTO<TrendingMovieResponseDTO>>.just(.init(page: 0, results: [], totalPages: 0, totalResults: 0))
         ).compactMap {
-            let (genres, configuration, trendingDTO) = $0
+            let (genres, configuration, favoriteIDandFlags, trendingDTO) = $0
+            let favoriteSets = Set<Int>(favoriteIDandFlags)
             return if let movieModels = trendingDTO.results {
                 movieModels.map { responseDTO in
                     responseDTO.toVM(
+                        isFavorite: favoriteSets.contains(responseDTO.id),
                         genres: genres,
                         configuration: configuration
                     )
