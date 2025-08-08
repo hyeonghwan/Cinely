@@ -9,6 +9,12 @@ import Foundation
 import RxSwift
 import RxRelay
 
+protocol PersistentStorage { }
+
+final class DefaultPersistentStorage: PersistentStorage {
+    
+}
+
 enum Storage {
     @KeyValueStore(key: .userName, defaultValue: "Guest_HWAN")
     static var userName: String
