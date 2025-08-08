@@ -8,25 +8,20 @@
 import Foundation
 import Alamofire
 import RxSwift
-import HwanMacros
 
-@Logging
-final class DefaultNetworkManager: NetworkManager {
-    
-    static let shared: NetworkManager = DefaultNetworkManager()
-    
+final class DefaultNetworkManager: NetworkManager {    
     private let defaultDecorder = JSONDecoder()
     
     private class API {
         static let session: Session = {
             let configuration = URLSessionConfiguration.af.default
-            configuration.timeoutIntervalForRequest = 5
+            configuration.timeoutIntervalForRequest = 3
             let apiLogger = ApiEventLogger()
             return Session(configuration: configuration, eventMonitors: [apiLogger])
         }()
     }
     
-    fileprivate init() {}
+    init() {}
     
     func GET<Resource: ApiResource, DTO: Decodable>(resource: Resource,
                                                     decodeType: DTO.Type,
@@ -82,5 +77,4 @@ final class DefaultNetworkManager: NetworkManager {
             }
         }
     }
-    
 }

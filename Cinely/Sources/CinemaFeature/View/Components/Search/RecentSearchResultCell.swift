@@ -12,8 +12,13 @@ import RxSwift
 final class RecentSearchResultCell: BaseCollectionViewCell, CellIdentifialble {
     private let searchLabel = UILabel()
     private(set) var deleteButton = UIButton()
-    var disposeBag = DisposeBag()
-    
+    private(set) var disposeBag = DisposeBag()
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
+
     override func addChild() {
         self.contentView.addSubview(searchLabel)
         self.contentView.addSubview(deleteButton)
@@ -50,11 +55,6 @@ final class RecentSearchResultCell: BaseCollectionViewCell, CellIdentifialble {
             deleteButton.widthAnchor.constraint(equalToConstant: 15),
             deleteButton.heightAnchor.constraint(equalToConstant: 15)
         ])
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.disposeBag = DisposeBag()
     }
     
     func setText(_ string: String) {

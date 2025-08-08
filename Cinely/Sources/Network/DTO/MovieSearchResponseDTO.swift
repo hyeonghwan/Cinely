@@ -42,13 +42,13 @@ struct MovieSearchResponseDTO: Decodable {
 }
 
 extension MovieSearchResponseDTO {
-    func toVM(genres: [Int: Genre], configuration: ImageConfiguration) -> TodayMovieModel {
+    func toVM(favoriteIDs: Set<Int>, genres: [Int: Genre], configuration: ImageConfiguration) -> TodayMovieModel {
         TodayMovieModel(
             id: self.id,
             postImage: configuration.getPosterPathSizeW342(filePath: self.posterPath ?? ""),
             title: self.title ?? "N/A",
             description: self.overview ?? "N/A",
-            favorite: false,
+            favorite: favoriteIDs.contains(self.id),
             genres: self.genreIds?.compactMap { genres[$0] } ?? ["N/A"],
             voteAverage: self.voteAverage ?? 0,
             releaseDate: self.releaseDate ?? "None"

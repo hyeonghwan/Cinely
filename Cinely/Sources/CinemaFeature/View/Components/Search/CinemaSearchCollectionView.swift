@@ -95,6 +95,7 @@ extension CinemaSearchTableView {
             postImageView.contentMode = .scaleAspectFill
             postImageView.clipsToBounds = true
             titleLabel.font = Font.bold17
+            titleLabel.textColor = Color.white
             titleLabel.numberOfLines = 2
             dateLabel.font = Font.light14
             dateLabel.textColor = Color.mediumGray.withAlphaComponent(0.5)
@@ -163,6 +164,7 @@ extension CinemaSearchTableView {
             self.init(frame: .zero, collectionViewLayout: TagCollectionViewFlowLayout())
             self.strongDataSource = CustomDataSource()
             self.dataSource = strongDataSource
+            self.backgroundColor = .black
             self.register(
                 TagCollectionViewCell.self,
                 forCellWithReuseIdentifier: TagCollectionViewCell.id

@@ -9,7 +9,7 @@ import Foundation
 
 struct User: Hashable {
     var nickname:   String
-    var likeCount: Int = 0
+    var likeCount: Int
     var signUpDate: String
     
     static var `default`: Self {

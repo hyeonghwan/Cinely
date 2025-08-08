@@ -13,7 +13,7 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
     private let movieImageView   = MovieImageView()
     private let titleLabel       = UILabel()
     private let descriptionLabel = UILabel()
-    private(set) var heartButton      = LikeButton()
+    private(set) var heartButton = LikeButton()
     private(set) var disposeBag = DisposeBag()
     
     override func prepareForReuse() {
@@ -87,5 +87,6 @@ final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
         )
         self.titleLabel.text = model.title
         self.descriptionLabel.text = model.description
+        self.heartButton.isSelected = model.favorite
     }
 }

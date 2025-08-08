@@ -77,12 +77,9 @@ final class CinemaMainViewController: BaseViewController {
     private let deleteAllRecentSearchModel = PublishSubject<Void>()
     private let reloadComplete = PublishRelay<Void>()
     private let todayMovieRetryTrigger = PublishRelay<Void>()
-    
-    
     private let refreshEnd = PublishRelay<Void>()
     
     override func binding() {
-        
         self.navigationItem.rightBarButtonItem?.rx.tap
             .subscribe(with: self, onNext: { vc, _ in
                 vc.coordinator?.moveToSearch()
@@ -206,7 +203,7 @@ extension CinemaMainViewController {
             switch section {
             case .header:
                 return CinemaCollectionView.headerSection()
-            
+                
             case .recentSearchResult:
                 let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: .recentSearchResult)
                 if let first = itemsInSection.first, first == .emptyRecentSearch {
@@ -216,7 +213,11 @@ extension CinemaMainViewController {
                 }
             case .todayMovies:
                 let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: .todayMovies)
-                return CinemaCollectionView.todayMovieSection()
+                if let first = itemsInSection.first, case .errorTodayMovie = first {
+                    return CinemaCollectionView.errorMovieSection()
+                } else {
+                    return CinemaCollectionView.todayMovieSection()
+                }
             }
         }, configuration: config)
     }
@@ -226,7 +227,7 @@ extension CinemaMainViewController {
             switch item {
             case let .user(user):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileContainerCell.id, for: indexPath) as? ProfileContainerCell else { return UICollectionViewCell() }
-                cell.set(with: user)
+                cell.profileHeaderView.set(with: user)
                 return cell
                 
             case .recentSearch(let searchModel):
@@ -245,6 +246,28 @@ extension CinemaMainViewController {
                 
             case .emptyRecentSearch:
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecentSearchEmptyCell.id, for: indexPath) as? RecentSearchEmptyCell else { return UICollectionViewCell() }
+                
+                return cell
+                
+            case let .errorTodayMovie(errorMessage):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ErrorRetryCell.id, for: indexPath) as? ErrorRetryCell else {
+                    return UICollectionViewCell()
+                }
+                
+                cell.settingErrorMessage(title: errorMessage.title, errorContent: errorMessage.message)
+                
+                if cell.retryButton.isLoading {
+                    cell.retryButton.isLoading = false
+                }
+                
+                if let self {
+                    cell.retryButton.rx.tap
+                        .withUnretained(cell)
+                        .do(onNext: { cell, _ in cell.retryButton.isLoading.toggle() })
+                        .map { $0.1 }
+                        .bind(to: self.todayMovieRetryTrigger)
+                        .disposed(by: cell.disposeBag)
+                }
                 
                 return cell
                 

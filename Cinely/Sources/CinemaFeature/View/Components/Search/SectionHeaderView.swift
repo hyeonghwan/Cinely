@@ -49,7 +49,7 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     func setTitleBinding(observable: Observable<(String, Bool)>) {
         observable
             .subscribe(with: self, onNext: { cell, tuple in
-                let (text, enable) = tuple
+                let (text, _) = tuple
                 cell.deleteButton
                     .setAttributedTitle(
                         NSAttributedString(string: text, attributes: [.foregroundColor : Color.green]),

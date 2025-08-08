@@ -7,53 +7,40 @@
 
 import Foundation
 import RxSwift
-import HwanMacros
+import RxRelay
 
-protocol PersistentStorage {
-    func dummyLoad() -> [RecentSearchModel]
-}
+protocol PersistentStorage { }
 
-final class DefaultAppStorage: PersistentStorage {
-    init() { }
+final class DefaultPersistentStorage: PersistentStorage {
     
-    func dummyLoad() -> [RecentSearchModel] {
-        
-        return [
-        RecentSearchModel(word: "마블", lastSearchDate: "2025.08.02"),
-        RecentSearchModel(word: "스파이더맨", lastSearchDate: "2025.08.01"),
-        RecentSearchModel(word: "배트맨!", lastSearchDate: "2025.07.31"),
-        RecentSearchModel(word: "서울#의 봄", lastSearchDate: "2025.07.29"),
-        RecentSearchModel(word: "범죄$도시4", lastSearchDate: "2025.07.25"),
-        RecentSearchModel(word: "인사이드 $!5아웃 2", lastSearchDate: "2025.07.22"),
-        RecentSearchModel(word: "로맨스 #영화# 추천", lastSearchDate: "2025.07.15"),
-        RecentSearchModel(word: "듄 파ㅇㅁㄹ트2", lastSearchDate: "2025.06.30"),
-        RecentSearchModel(word: "오펜하이머", lastSearchDate: "2025.06.11"),
-        RecentSearchModel(word: "핳ㅎ핳ㅎ", lastSearchDate: "2025.05.05")
-    ]
-    }
 }
 
 enum Storage {
     @KeyValueStore(key: .userName, defaultValue: "Guest_HWAN")
     static var userName: String
     
-    @KeyValueStore(key: .userSignUpDate, defaultValue: Date.now)
-    static var userSignUpDate: Date
+    @KeyValueStore(key: .userSignUpDate, defaultValue: Date.now.toISO8601String())
+    static var userSignUpDate: String
     
-    @KeyValueStore(key: .userSignUpDate, defaultValue: false)
+    @KeyValueStore(key: .userLikeCount, defaultValue: 0)
+    static var userLikeCount: Int
+    
+    @KeyValueStore(key: .didFinishOnboarding, defaultValue: false)
     static var didFinishOnboarding: Bool
     
     @CodableStore(key: .favoriteMovie, defaultValue: [])
     static var favoriteMovie: [TodayMovieModel]
     
-    @CodableStore(key: .recentSearchWords, defaultValue: [])
-    static var recentSearchWords: [RecentSearchModel]
+    @CodableStore(key: .recentSearchModels, defaultValue: [])
+    static var recentSearchModels: [RecentSearchModel]
     
     fileprivate enum StorageKey: String {
         case userName
         case userSignUpDate
+        case userLikeCount
         case favoriteMovie
-        case recentSearchWords
+        case recentSearchModels
+        case didFinishOnboarding
     }
     
     @propertyWrapper
@@ -95,8 +82,8 @@ enum Storage {
                     let model = try JSONDecoder().decode(T.self, from: data)
                     return model
                 } catch {
-                    LoggingMacroHelper.generate(category: String(describing: Self.self))
-                        .log(level: .info, "Error decoding \(T.self): \(error)")
+                    // LoggingMacroHelper.generate(category: String(describing: Self.self))
+                       //  .log(level: .info, "Error decoding \(T.self): \(error)")
                     return defaultValue
                 }
             }
@@ -105,8 +92,8 @@ enum Storage {
                     let data = try JSONEncoder().encode(newValue)
                     UserDefaults.standard.set(data, forKey: key.rawValue)
                 } catch {
-                    LoggingMacroHelper.generate(category: String(describing: Self.self))
-                        .log(level: .info, "Error decoding \(T.self): \(error)")
+                    // LoggingMacroHelper.generate(category: String(describing: Self.self))
+                       //  .log(level: .info, "Error decoding \(T.self): \(error)")
                 }
             }
         }

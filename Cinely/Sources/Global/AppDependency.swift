@@ -16,10 +16,10 @@ struct AppDependency {
 
 final class AppDependencyFactory {
     static func make() -> AppDependency {
-        let networkManager: NetworkManager = DefaultNetworkManager.shared
+        let networkManager: NetworkManager = DefaultNetworkManager()
         let networkState = NWState()
         
-        let storage: PersistentStorage = DefaultAppStorage()
+        let storage: PersistentStorage = DefaultPersistentStorage()
         let appState = DefaultAppState(
             dependency: DefaultAppState.Dependency(
                 appProvider: DefaultAppProvider(
