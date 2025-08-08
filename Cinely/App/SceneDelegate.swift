@@ -7,56 +7,25 @@
 
 import UIKit
 import Design
+import RxSwift
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    var window: UIWindow?
+    
+    private var appCoordinator: AppCoordinator!
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow()
         window.windowScene = windowScene
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return
-        }
-        
-        let cinemaMainVC = CinemaMainViewController.create(with:
-                .init(
-                    dependency: .init(
-                        appState: appDelegate.appState,
-                        appStorage: appDelegate.storage,
-                        trendingMovieProvider: DefaultTrendingMovieProvider(
-                            networkManager: appDelegate.networkManager
-                        )
-                    )
-                )
-        )
-        cinemaMainVC.tabBarItem = UITabBarItem(title: "CINEMA", image: Icons.popCorn, tag: 0)
-        let cinemaNav = UINavigationController(rootViewController: cinemaMainVC)
-        
-        
-        let upcomingVC = UpcomingViewController()
-        upcomingVC.tabBarItem = UITabBarItem(title: "UPCOMING", image: Icons.filmFill, tag: 1)
-        let upcomingVCNav = UINavigationController(rootViewController: upcomingVC)
-        
-        
-        let profileSettingVC = ProfileSettingViewController()
-        profileSettingVC.tabBarItem = UITabBarItem(title: "PROFILE", image: Icons.personCircle, tag: 1)
-        let profileSettingVNav = UINavigationController(rootViewController: profileSettingVC)
-        
-        let tabBarController = UITabBarController()
-        tabBarController.tabBar.tintColor = Color.green
-        tabBarController.setViewControllers([cinemaNav, upcomingVCNav, profileSettingVNav], animated: false)
-        
-        window.rootViewController = tabBarController
-        
-        // Thread.sleep(forTimeInterval: 2)
-        self.window = window
-        self.window?.makeKeyAndVisible()
+        let dependency = AppDependencyFactory.make()
+        let appCoordinator = AppCoordinator(window: window, dependency: dependency)
+        self.appCoordinator = appCoordinator
+        appCoordinator.start()
+        window.makeKeyAndVisible()
     }
 }
 
 final class UpcomingViewController: BaseViewController {
-    
     override func addAttributes() {
         self.view.backgroundColor = Color.black
     }

@@ -7,12 +7,19 @@
 
 import UIKit
 import Design
+import RxSwift
 
 final class TodayMovieItemCell: BaseCollectionViewCell, CellIdentifialble {
     private let movieImageView   = MovieImageView()
     private let titleLabel       = UILabel()
     private let descriptionLabel = UILabel()
-    private let heartButton      = LikeButton()
+    private(set) var heartButton      = LikeButton()
+    private(set) var disposeBag = DisposeBag()
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
     
     override func addAttributes() {
         movieImageView.contentMode = .scaleAspectFill

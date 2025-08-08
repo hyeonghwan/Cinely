@@ -8,21 +8,20 @@
 import Foundation
 import RxSwift
 import RxCocoa
-import HwanMacros
 
-@Logging
 final class CinemaSearchViewModel {
-    
     struct Input {
         let submit: Observable<String>
         let paging: Observable<Void>
         let pagingFinish: Observable<Void>
         let favoriteButtonTapped: Observable<(row: Int, flag: Bool)>
+        let viewDidLoad: Observable<Void>
     }
     
     struct Output {
-        var results: Driver<[SearchItem]>
+        var searchMovieList: Driver<[SearchItem]>
         var isPagingLoading: Driver<Bool>
+        var alertTrigger: Driver<ErrorMessage>
     }
     
     enum SearchItem {
@@ -51,18 +50,14 @@ final class CinemaSearchViewModel {
     private let searchMovieList = BehaviorRelay<[SearchItem]>(value: [.empty])
     private let currentPageState = BehaviorRelay<PagingState>(value: PagingState(currentPage: 1, queryText: "", total: 1))
     private let isPagingLoading = BehaviorRelay<Bool>(value: false)
+    private var viewDidLoaded = false
+    private let alertTrigger = PublishRelay<ErrorMessage>()
     private var disposeBag = DisposeBag()
+    var retryCount: Int = 0
     
     func transform(input: Input) -> Output {
-        input.favoriteButtonTapped
-            .buffer(timeSpan: .seconds(2), count: 5, scheduler: MainScheduler.instance)
-            .subscribe(with: self, onNext: { vm, value in
-                for i in 0..<value.count {
-                    vm.logger.log(level: .fault, "i: \(String(describing: value[i]))")
-                }
-            }, onError: { vm, error  in
-                vm.logger.log(level: .fault, "error: \(String(describing: error))")
-            })
+        input.viewDidLoad
+            .subscribe(with: self, onNext: { vm, value in vm.viewDidLoaded = true })
             .disposed(by: disposeBag)
         
         input.favoriteButtonTapped
@@ -72,22 +67,16 @@ final class CinemaSearchViewModel {
                 if case var .movie(changedMovie) = movies[row] {
                     changedMovie.favorite = flag
                     movies[row] = .movie(changedMovie)
-                    self.logger.log(
-                        level: .fault,
-                        "favoriteButtonTapped Model- Storage.favoriteMovie \(String(describing: Storage.favoriteMovie.map(\.id)))"
-                    )
                 }
                 return movies
             }
             .bind(to: searchMovieList)
             .disposed(by: disposeBag)
         
-        input.pagingFinish.subscribe(
-            with: self, onNext: { vm, _ in
-                vm.isPagingLoading.accept(false)
-            }
-        )
-        .disposed(by: disposeBag)
+        input.pagingFinish
+            .map { _ in false }
+            .bind(to: isPagingLoading)
+            .disposed(by: disposeBag)
         
         let latestConfig = Observable.combineLatest(
             appState.genresState,
@@ -97,11 +86,21 @@ final class CinemaSearchViewModel {
         input.submit
             .withUnretained(self)
             .flatMap { (vm, query) -> Observable<(MovieSearchApiResource.ResponseType, String)> in
-                Observable.zip(vm.movieSearchProvider.search(page: 1, query: query), Observable<String>.just(query))
+                Observable.zip(
+                    vm.movieSearchProvider.search(page: 1, query: query),
+                    Observable<String>.just(query)
+                )
             }
             .withLatestFrom(latestConfig) { dto, state in (dto, state) }
             .subscribe(with: self, onNext: { vm, tuple in
-                vm.loadSearchResult(tuple: tuple)
+                let ((paged, query), (genres, config)) = tuple
+                vm.loadSearchResult(
+                    pagedResponse: paged,
+                    query: query,
+                    genres: genres,
+                    configuration: config,
+                    favoriteIDs: []
+                )
             })
             .disposed(by: disposeBag)
         
@@ -118,38 +117,61 @@ final class CinemaSearchViewModel {
             .withLatestFrom(pagingConfig)
             .filter { $0.2.isPossibleCall }
             .withUnretained(self)
-            .flatMap { vm, currentState -> Observable<(PagedResponseDTO<MovieSearchResponseDTO>, [Int: Genre], ImageConfiguration, PagingState)> in
-                var (genres, configuration, pagingState) = currentState
-                guard let nextPage = pagingState.mutateNext() else { return .empty() }
-                
-                let search = vm.movieSearchProvider.search(
-                    page: nextPage,
-                    query: pagingState.queryText
-                )
-                
-                return Observable.zip(
-                    search,
-                    Observable.just(genres),
-                    Observable.just(configuration),
-                    Observable.just(pagingState)
+            .flatMap
+        { vm, currentState -> Observable<(PagedResponseDTO<MovieSearchResponseDTO>, [Int: Genre], ImageConfiguration, PagingState, Set<Int>)> in
+            var (genres, configuration, pagingState) = currentState
+            guard let nextPage = pagingState.mutateNext() else { return .empty() }
+            
+            let search = vm.movieSearchProvider.search(
+                page: nextPage,
+                query: pagingState.queryText
+            ).catch { error in
+                vm.isPagingLoading.accept(false)
+                if let errorMessage = DefaultErrorHandleProviderProvider.shared.convertToURLError(error: error) {
+                    vm.alertTrigger.accept(errorMessage)
+                }
+                return Observable.empty()
+            }
+            
+            return Observable.zip(
+                search,
+                Observable.just(genres),
+                Observable.just(configuration),
+                Observable.just(pagingState),
+                Observable<Set<Int>>.just([])
+            )
+        }
+        .subscribe(
+            with: self,
+            onNext: { vm, response in
+                vm.applyPagingResult(
+                    pagedResponse: response.0,
+                    genres: response.1,
+                    configuration: response.2,
+                    pagingState: response.3,
+                    favoriteIDs: response.4
                 )
             }
-            .subscribe(with: self, onNext: { vm, response in
-                vm.applyPagingResult(response: response)
-            })
-            .disposed(by: disposeBag)
+        )
+        .disposed(by: disposeBag)
         
         return Output(
-            results: searchMovieList.asDriver(),
-            isPagingLoading: isPagingLoading.asDriver()
+            searchMovieList: searchMovieList.asDriver(),
+            isPagingLoading: isPagingLoading.asDriver(),
+            alertTrigger: alertTrigger.asDriver(onErrorJustReturn: ErrorMessage.default)
         )
     }
     
-    private func loadSearchResult(tuple: ((MovieSearchApiResource.ResponseType, String), ([Int: Genre], ImageConfiguration))) {
-        let ((pagedResponse, query), (genres, configuration)) = tuple
+    private func loadSearchResult(pagedResponse: MovieSearchApiResource.ResponseType,
+                                  query: String,
+                                  genres: [Int: Genre],
+                                  configuration: ImageConfiguration,
+                                  favoriteIDs: Set<Int>)
+    {
         let (page, totalPage) = (pagedResponse.page ?? 1, pagedResponse.totalPages ?? 1)
         let models: [SearchItem] = (pagedResponse.results ?? []).map { value in
-            SearchItem.movie(value.toVM(genres: genres, configuration: configuration))
+            SearchItem.movie(value.toVM(genres: genres,
+                                        configuration: configuration))
         }
         let newPageState = PagingState(currentPage: page, queryText: query, total: totalPage)
         self.currentPageState.accept(newPageState)
@@ -165,8 +187,11 @@ final class CinemaSearchViewModel {
         }
     }
     
-    private func applyPagingResult(response: (MovieSearchApiResource.ResponseType, [Int: Genre], ImageConfiguration, PagingState)) {
-        let (pagedResponse, genres, configuration, pagingState) = response
+    private func applyPagingResult(pagedResponse: MovieSearchApiResource.ResponseType,
+                                   genres: [Int: Genre],
+                                   configuration: ImageConfiguration,
+                                   pagingState: PagingState,
+                                   favoriteIDs: Set<Int>) {
         
         let (page, totalPage) = (pagedResponse.page ?? 1, pagedResponse.totalPages ?? 1)
         let newPageState = PagingState(currentPage: page, queryText: pagingState.queryText, total: totalPage)
