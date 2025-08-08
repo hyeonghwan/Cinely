@@ -168,6 +168,17 @@ final class CinemaMainViewModel: ViewModel {
             .compactMap { errMessage in errMessage == nil ? ErrorMessage.default : errMessage }
             .bind(to: alertTrigger)
             .disposed(by: disposeBag)
+        
+        // MARK: Input Handle
+        input.deleteRecentSearchModel
+            .bind(to: appState.removeRecentSearchBinder)
+            .disposed(by: disposeBag)
+        
+        input.deleteAllRecentSearchModel
+            .bind(to: appState.removeAllRecentSearchBinder)
+            .disposed(by: disposeBag)
+    
+        // MARK: Debounce background Update
         input.favoriteButtonTapped
             .groupBy { movie, isFavorite in movie.id }
             .flatMap { group -> Observable<(TodayMovieModel, Bool)> in

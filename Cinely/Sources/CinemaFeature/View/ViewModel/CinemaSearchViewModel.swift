@@ -109,6 +109,11 @@ final class CinemaSearchViewModel {
             .bind(to: isPagingLoading)
             .disposed(by: disposeBag)
         
+        input.submit
+            .map { RecentSearchModel(word: $0, lastSearchDate: Date.now.toISO8601String()) }
+            .bind(to: appState.addRecentSearchBinder)
+            .disposed(by: disposeBag)
+        
         let latestConfig = Observable.combineLatest(
             appState.genresState,
             appState.configurationState
