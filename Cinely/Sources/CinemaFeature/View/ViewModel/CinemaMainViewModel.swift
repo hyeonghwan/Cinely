@@ -288,7 +288,13 @@ final class CinemaMainViewModel: ViewModel {
                     recentSearches.map { .recentSearch($0) }
                 }
                 
-                let movieItems: [MainHashableItem] = movies.map { .todayMovie($0) }
+                let movieItems: [MainHashableItem]
+                =
+                if movies.isEmpty {
+                    [.errorTodayMovie(ErrorMessage(title: "네트워크 에러", message: "네트워크 연결을 확인하고 \n 다시 시도해주세요"))]
+                } else {
+                    movies.map { .todayMovie($0) }
+                }
                 let headerSection = MainSectionAndItem(section: .header, items: [.user(user)])
                 let recentSearchSection = MainSectionAndItem(section: .recentSearchResult, items: recentSearchItems)
                 let movieSection = MainSectionAndItem(section: .todayMovies, items: movieItems)
@@ -335,7 +341,13 @@ final class CinemaMainViewModel: ViewModel {
                 recentSearches.map { .recentSearch($0) }
             }
             
-            let movieItems: [MainHashableItem] = movies.map { .todayMovie($0) }
+            let movieItems: [MainHashableItem]
+            =
+            if movies.isEmpty {
+                [.errorTodayMovie(ErrorMessage(title: "네트워크 에러", message: "네트워크 연결을 확인하고 \n 다시 시도해주세요"))]
+            } else {
+                movies.map { .todayMovie($0) }
+            }
             let headerSection = MainSectionAndItem(section: .header, items: [.user(user)])
             let recentSearchSection = MainSectionAndItem(section: .recentSearchResult, items: recentSearchItems)
             let movieSection = MainSectionAndItem(section: .todayMovies, items: movieItems)

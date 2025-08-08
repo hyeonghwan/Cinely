@@ -249,6 +249,28 @@ extension CinemaMainViewController {
                 
                 return cell
                 
+            case let .errorTodayMovie(errorMessage):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ErrorRetryCell.id, for: indexPath) as? ErrorRetryCell else {
+                    return UICollectionViewCell()
+                }
+                
+                cell.settingErrorMessage(title: errorMessage.title, errorContent: errorMessage.message)
+                
+                if cell.retryButton.isLoading {
+                    cell.retryButton.isLoading = false
+                }
+                
+                if let self {
+                    cell.retryButton.rx.tap
+                        .withUnretained(cell)
+                        .do(onNext: { cell, _ in cell.retryButton.isLoading.toggle() })
+                        .map { $0.1 }
+                        .bind(to: self.todayMovieRetryTrigger)
+                        .disposed(by: cell.disposeBag)
+                }
+                
+                return cell
+                
             case let .todayMovie(movieModel):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TodayMovieItemCell.id, for: indexPath) as? TodayMovieItemCell else { return UICollectionViewCell() }
                 cell.set(with: movieModel)
@@ -265,12 +287,6 @@ extension CinemaMainViewController {
                         .bind(to: favoriteButtonTapped)
                         .disposed(by: cell.disposeBag)
                 }
-                return cell
-                
-            case let .errorTodayMovie(model):
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ErrorRetryCell.id, for: indexPath) as? ErrorRetryCell
-                else { return UICollectionViewCell() }
-                cell.settingErrorMessage(title: model.title, errorContent: model.message)
                 return cell
             }
         }
