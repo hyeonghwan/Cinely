@@ -10,8 +10,8 @@ import Design
 import RxSwift
 
 final class ErrorRetryCell: BaseCollectionViewCell, CellIdentifialble {
-    private let titleLabel = UILabel()
-    private let errorContentLabel = UILabel()
+    private(set) var titleLabel = UILabel()
+    private(set) var errorContentLabel = UILabel()
     private(set) var retryButton = LoadingButton(title: "재시도")
     var disposeBag = DisposeBag()
     

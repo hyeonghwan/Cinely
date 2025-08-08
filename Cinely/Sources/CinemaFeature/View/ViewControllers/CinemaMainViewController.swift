@@ -216,7 +216,11 @@ extension CinemaMainViewController {
                 }
             case .todayMovies:
                 let itemsInSection = dataSource.snapshot().itemIdentifiers(inSection: .todayMovies)
-                return CinemaCollectionView.todayMovieSection()
+                if let first = itemsInSection.first, case .errorTodayMovie = first {
+                    return CinemaCollectionView.errorMovieSection()
+                } else {
+                    return CinemaCollectionView.todayMovieSection()
+                }
             }
         }, configuration: config)
     }
@@ -226,7 +230,7 @@ extension CinemaMainViewController {
             switch item {
             case let .user(user):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProfileContainerCell.id, for: indexPath) as? ProfileContainerCell else { return UICollectionViewCell() }
-                cell.set(with: user)
+                cell.profileHeaderView.set(with: user)
                 return cell
                 
             case .recentSearch(let searchModel):
@@ -264,6 +268,12 @@ extension CinemaMainViewController {
                         .bind(to: favoriteButtonTapped)
                         .disposed(by: cell.disposeBag)
                 }
+                return cell
+                
+            case let .errorTodayMovie(model):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ErrorRetryCell.id, for: indexPath) as? ErrorRetryCell
+                else { return UICollectionViewCell() }
+                cell.settingErrorMessage(title: model.title, errorContent: model.message)
                 return cell
             }
         }
