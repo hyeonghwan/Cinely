@@ -292,7 +292,7 @@ extension CinemaDetailViewController {
                     header.setTitle(indexPath.section == 1 ? "Synopsis" : "Cast")
                     
                     if indexPath.section == 1 {
-                        header.setTitleBinding(observable: synopsisHeaderState.asObservable())
+                        header.setTitleBinding(observable: self.synopsisHeaderState.asObservable())
                         
                         header.deleteButton.rx.tap
                             .bind(to: self.moreButtonTapped)
