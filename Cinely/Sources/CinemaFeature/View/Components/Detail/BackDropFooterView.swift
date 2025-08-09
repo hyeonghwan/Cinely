@@ -46,6 +46,7 @@ final class BackDropFooterView: BaseReusableView, CellIdentifialble {
         }
     }
     
+    private let containerView = UIView()
     private let dateContainer = ImageLabelContainer()
     private let ratingContainer = ImageLabelContainer()
     private let genreContainer = ImageLabelContainer()
@@ -70,11 +71,13 @@ final class BackDropFooterView: BaseReusableView, CellIdentifialble {
     }
     
     override func addChild() {
-        self.addSubview(dateContainer)
-        self.addSubview(ratingContainer)
-        self.addSubview(genreContainer)
-        self.addSubview(separatorLabel1)
-        self.addSubview(separatorLabel2)
+        self.addSubview(containerView)
+        self.containerView.addSubview(dateContainer)
+        self.containerView.addSubview(ratingContainer)
+        self.containerView.addSubview(genreContainer)
+        self.containerView.addSubview(separatorLabel1)
+        self.containerView.addSubview(separatorLabel2)
+        containerView.translatesAutoresizingMaskIntoConstraints = false
         dateContainer.translatesAutoresizingMaskIntoConstraints = false
         ratingContainer.translatesAutoresizingMaskIntoConstraints = false
         genreContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -83,22 +86,29 @@ final class BackDropFooterView: BaseReusableView, CellIdentifialble {
     }
 
     override func addLayout() {
+        separatorLabel1.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        separatorLabel2.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        let maxWidth = UIScreen.main.bounds.width - 16
         NSLayoutConstraint.activate([
-            dateContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            ratingContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            genreContainer.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            separatorLabel1.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            separatorLabel2.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            containerView.topAnchor.constraint(equalTo: self.topAnchor),
+            containerView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            containerView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            containerView.widthAnchor.constraint(lessThanOrEqualToConstant: maxWidth),
             
-            ratingContainer.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            dateContainer.centerYAnchor.constraint(equalTo: self.containerView.centerYAnchor),
+            ratingContainer.centerYAnchor.constraint(equalTo: self.containerView.centerYAnchor),
+            genreContainer.centerYAnchor.constraint(equalTo: self.containerView.centerYAnchor),
+            separatorLabel1.centerYAnchor.constraint(equalTo: self.containerView.centerYAnchor),
+            separatorLabel2.centerYAnchor.constraint(equalTo: self.containerView.centerYAnchor),
+            
             separatorLabel1.trailingAnchor.constraint(equalTo: ratingContainer.leadingAnchor, constant: -6),
             separatorLabel2.leadingAnchor.constraint(equalTo: ratingContainer.trailingAnchor, constant: 6),
             
             dateContainer.trailingAnchor.constraint(equalTo: separatorLabel1.leadingAnchor, constant: -6),
-            dateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 4),
-            
             genreContainer.leadingAnchor.constraint(equalTo: separatorLabel2.trailingAnchor, constant: 6),
-            genreContainer.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -4)
+            
+            dateContainer.leadingAnchor.constraint(equalTo: self.containerView.leadingAnchor),
+            genreContainer.trailingAnchor.constraint(equalTo: self.containerView.trailingAnchor)
         ])
     }
 
