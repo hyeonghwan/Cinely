@@ -58,7 +58,7 @@ final class BackDropFooterView: BaseReusableView, CellIdentifialble {
         ratingContainer.imageView.image = Icons.starFill?.withConfiguration(iconConfig)
         genreContainer.imageView.image = Icons.filmFill?.withConfiguration(iconConfig)
 
-        genreContainer.label.numberOfLines = 2
+        genreContainer.label.numberOfLines = 3
         separatorLabel1.text = " | "
         separatorLabel2.text = " | "
         
