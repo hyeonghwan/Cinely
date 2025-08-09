@@ -281,22 +281,33 @@ extension CinemaDetailViewController {
         }
         
         diffableDataSources.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
-            guard let self else { return nil }
             if kind == UICollectionView.elementKindSectionHeader {
                 if indexPath.section == 1 || indexPath.section == 2 {
                     let header = collectionView.dequeueReusableSupplementaryView(
                         ofKind: UICollectionView.elementKindSectionHeader,
                         withReuseIdentifier: SectionHeaderView.id,
-                        for: indexPath) as! SectionHeaderView
+                        for: indexPath
+                    ) as! SectionHeaderView
                     
                     header.setTitle(indexPath.section == 1 ? "Synopsis" : "Cast")
                     
                     if indexPath.section == 1 {
-                        header.setTitleBinding(observable: self.synopsisHeaderState.asObservable())
-                        
-                        header.deleteButton.rx.tap
-                            .bind(to: self.moreButtonTapped)
+                        self?.synopsisHeaderState
+                            .subscribe(with: header, onNext: { _header, tuple in
+                                let (text, _) = tuple
+                                _header.deleteButton
+                                    .setAttributedTitle(
+                                        NSAttributedString(string: text, attributes: [.foregroundColor : Color.green]),
+                                        for: .normal
+                                    )
+                            })
                             .disposed(by: header.disposeBag)
+                        
+                        if let self {
+                            header.deleteButton.rx.tap
+                                .bind(to: self.moreButtonTapped)
+                                .disposed(by: header.disposeBag)
+                        }
                     }
                     header.setDeleteButtonHidden(indexPath.section != 1)
                     
@@ -309,11 +320,13 @@ extension CinemaDetailViewController {
                     ofKind: UICollectionView.elementKindSectionFooter,
                     withReuseIdentifier: BackDropFooterView.id, for: indexPath
                 ) as! BackDropFooterView
-                footer.set(
-                    date: self.movieModel.releaseDate,
-                    rating: self.movieModel.voteAverage,
-                    genres: self.movieModel.genres.joined(separator: ", ")
-                )
+                if let self {
+                    footer.set(
+                        date: self.movieModel.releaseDate,
+                        rating: self.movieModel.voteAverage,
+                        genres: self.movieModel.genres.joined(separator: ", ")
+                    )
+                }
                 return footer
             }
             return nil
