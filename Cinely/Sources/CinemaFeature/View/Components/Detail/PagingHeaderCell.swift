@@ -7,6 +7,7 @@
 
 import UIKit
 import Design
+import Kingfisher
 
 final class PagingHeaderCell: BaseCollectionViewCell, CellIdentifialble {
     private let postImageView = MovieImageView()
@@ -38,6 +39,6 @@ final class PagingHeaderCell: BaseCollectionViewCell, CellIdentifialble {
     }
     
     func set(filePath: String) {
-        postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
+        self.postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
     }
 }

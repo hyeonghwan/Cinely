@@ -1,14 +1,7 @@
-//
-//  CollectionViewFlowLayout.swift
-//  Cinely
-//
-//  Created by hwan on 8/2/25.
-//
-
 import UIKit
-import Design
 
 final class TagCollectionViewFlowLayout: UICollectionViewFlowLayout {
+    
     override init() {
         super.init()
         self.estimatedItemSize = CGSize(width: 100, height: 30)

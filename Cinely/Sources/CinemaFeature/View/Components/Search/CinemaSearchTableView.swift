@@ -115,17 +115,12 @@ extension CinemaSearchTableView {
         }
 
         override func addLayout() {
-            let heightAnchor = cinemaGenreList.heightAnchor.constraint(equalToConstant: 44)
-            heightAnchor.isActive = true
-            heightAnchor.priority = .defaultLow
-            
             let heightConstraint = postImageView.heightAnchor.constraint(equalToConstant: 130)
             heightConstraint.priority = .defaultHigh
             heightConstraint.isActive = true
             
             titleLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
             dateLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
-            cinemaGenreList.setContentHuggingPriority(.required, for: .vertical)
             
             NSLayoutConstraint.activate([
                 postImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
@@ -140,6 +135,7 @@ extension CinemaSearchTableView {
                 dateLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
                 dateLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
                 
+                cinemaGenreList.topAnchor.constraint(equalTo: dateLabel.bottomAnchor),
                 cinemaGenreList.bottomAnchor.constraint(equalTo: postImageView.bottomAnchor),
                 cinemaGenreList.leadingAnchor.constraint(equalTo: postImageView.trailingAnchor, constant: 16),
                 cinemaGenreList.trailingAnchor.constraint(equalTo: likeButton.leadingAnchor, constant: -12),
@@ -159,28 +155,22 @@ extension CinemaSearchTableView {
 extension CinemaSearchTableView {
     private class CinemaGenreListCollectionView: BaseCollectiionView {
         private var strongDataSource: CustomDataSource!
-        
+        private var strongFlowDelegate: CustomFlowLayoutDelegate!
         convenience init() {
             self.init(frame: .zero, collectionViewLayout: TagCollectionViewFlowLayout())
             self.strongDataSource = CustomDataSource()
+            self.strongFlowDelegate = CustomFlowLayoutDelegate()
+            
+            self.delegate = strongFlowDelegate
             self.dataSource = strongDataSource
+            
             self.backgroundColor = .black
             self.register(
                 TagCollectionViewCell.self,
                 forCellWithReuseIdentifier: TagCollectionViewCell.id
             )
-        }
-        
-        override var contentSize: CGSize {
-            didSet {
-                if oldValue.height != contentSize.height {
-                    invalidateIntrinsicContentSize()
-                }
-            }
-        }
-        
-        override var intrinsicContentSize: CGSize {
-            return self.collectionViewLayout.collectionViewContentSize
+            self.transform = CGAffineTransform(scaleX: 1, y: -1)
+            self.isUserInteractionEnabled = false
         }
         
         func setGenres(_ models: [String]) {
@@ -189,7 +179,7 @@ extension CinemaSearchTableView {
         }
     }
     
-    private class CustomDataSource: NSObject, UICollectionViewDataSource {
+    final class CustomDataSource: NSObject, UICollectionViewDataSource {
         var models: [String] = []
         
         convenience init(models: [String]) {
@@ -210,6 +200,21 @@ extension CinemaSearchTableView {
         }
     }
     
+    final class CustomFlowLayoutDelegate: NSObject, UICollectionViewDelegateFlowLayout {
+        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+            if let dataSource = collectionView.dataSource as? CustomDataSource {
+                let itemWidth = (dataSource.models[indexPath.row] as NSString).boundingRect(
+                    with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 30),
+                    options: .usesLineFragmentOrigin,
+                    attributes: [.font: CinemaSearchTableView.TagLabel.font],
+                    context: nil
+                ).width
+                return CGSize(width: itemWidth + 8, height: 30)
+            }
+            return CGSize(width: 100, height: 30)
+        }
+    }
+    
     private class TagCollectionViewCell: BaseCollectionViewCell, CellIdentifialble {
         private let genreLabel = TagLabel()
         
@@ -225,11 +230,12 @@ extension CinemaSearchTableView {
         }
         
         override func addLayout() {
+            genreLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
             NSLayoutConstraint.activate([
-                genreLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 4),
+                genreLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 3),
                 genreLabel.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 4),
                 genreLabel.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -4),
-                genreLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -4)
+                genreLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -3)
             ])
         }
         
@@ -238,10 +244,13 @@ extension CinemaSearchTableView {
         }
     }
     
-    private class TagLabel: UILabel {
+    final class TagLabel: UILabel {
+        static let font = Font.thin12
+        
         override init(frame: CGRect) {
             super.init(frame: frame)
             addLayout()
+            self.transform = CGAffineTransform(scaleX: 1, y: -1)
         }
         
         required init?(coder: NSCoder) {
@@ -250,7 +259,7 @@ extension CinemaSearchTableView {
         
         private func addLayout() {
             self.textAlignment = .center
-            self.font = Font.thin12
+            self.font = Self.font
         }
     }
 }
