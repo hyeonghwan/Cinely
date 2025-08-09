@@ -175,7 +175,7 @@ final class CinemaDetailViewController: BaseViewController {
             .skip(1)
             .drive(with: self, onNext: { vc, isFavorite in
                 let icon = isFavorite ? Icons.heartFill : Icons.heart
-                self.navigationItem.rightBarButtonItem?.image
+                vc.navigationItem.rightBarButtonItem?.image
                 =
                 icon?.withTintColor(Color.green.withAlphaComponent(0.6))
             })
