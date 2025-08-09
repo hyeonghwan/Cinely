@@ -25,14 +25,7 @@ final class CinemaDetailViewController: BaseViewController {
     private lazy var collectionView    = CinemaDetailCollectionView(layout: compositionalLayout())
     private let pageControl = UIPageControl()
     
-    private let pageCountingLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = Color.white
-        label.font = Font.light14
-        label.text = "Hello"
-        return label
-    }()
-    
+    private let pageCounterView = CapsulePageCounterView()
     private var indicatorContainerView = IndicatorContainerView()
 
     fileprivate var detailViewModel: CinemaDetailViewModel!
@@ -73,6 +66,18 @@ final class CinemaDetailViewController: BaseViewController {
         )
     }
     
+    private func setupCustomTitle(title: String) {
+        let titleLabel = UILabel()
+        titleLabel.text = "\(title)"
+        titleLabel.font = Font.bold17
+        titleLabel.textColor = .white
+        titleLabel.textAlignment = .center
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.6
+        titleLabel.numberOfLines = 1
+        navigationItem.titleView = titleLabel
+    }
+    
     private func navigationSetting() {
         let likeBarButtonItem = UIBarButtonItem(
             image: Icons.heart?.withTintColor(Color.green.withAlphaComponent(0.6)),
@@ -109,11 +114,11 @@ final class CinemaDetailViewController: BaseViewController {
     override func addChild() {
         self.view.addSubview(collectionView)
         self.collectionView.addSubview(pageControl)
-        self.collectionView.addSubview(pageCountingLabel)
+        self.collectionView.addSubview(pageCounterView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageCountingLabel.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.bringSubviewToFront(pageCountingLabel)
+        pageCounterView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.bringSubviewToFront(pageCounterView)
     }
     
     override func addLayout() {
@@ -123,8 +128,8 @@ final class CinemaDetailViewController: BaseViewController {
             collectionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
             
-            pageCountingLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 12),
-            pageCountingLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            pageCounterView.topAnchor.constraint(equalTo: self.collectionView.topAnchor, constant: 6),
+            pageCounterView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -6),
             
             pageControl.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor),
             pageControl.bottomAnchor.constraint(equalTo: collectionView.topAnchor, constant: PagingHeaderCell.height - 8)
@@ -153,7 +158,7 @@ final class CinemaDetailViewController: BaseViewController {
             .subscribe(with: self, onNext: { vc, currentPage in
                 let indexPath = IndexPath(item: currentPage, section: 0)
                 vc.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
-                vc.pageCountingLabel.text = "\(currentPage + 1)/\(vc.pageControl.numberOfPages)"
+                vc.pageCounterView.updatePage(currentPage + 1, total: vc.pageControl.numberOfPages)
                 vc.isProgrammaticScroll = true
                 vc.scrollTimer?.invalidate()
                 vc.scrollTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
@@ -231,7 +236,7 @@ final class CinemaDetailViewController: BaseViewController {
             
             if section == .pagingHeader {
                 pageControl.numberOfPages = items.count
-                pageCountingLabel.text = "1/\(items.count)"
+                pageCounterView.updatePage(self.pageControl.currentPage + 1, total: self.pageControl.numberOfPages)
             }
         }
         
@@ -273,10 +278,11 @@ extension CinemaDetailViewController {
                     }
                     let currentPage = Int(max(0, round(contentOffset.x / environment.container.contentSize.width)))
                     let isHorizontalScroll = environment.container.contentSize.width >= environment.container.contentSize.height
+                    
                     if isHorizontalScroll {
                         self.pageControl.currentPage = currentPage
                         self.imagePrefetcher.pageControlIndex.accept(currentPage)
-                        self.pageCountingLabel.text = "\(currentPage + 1)/\(self.pageControl.numberOfPages)"
+                        self.pageCounterView.updatePage(currentPage + 1, total: self.pageControl.numberOfPages)
                     }
                 }
                 return pagingHeaderSection
