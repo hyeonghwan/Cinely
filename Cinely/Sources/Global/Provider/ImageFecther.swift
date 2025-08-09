@@ -42,7 +42,9 @@ final class ImagePrefetchProvider {
         }
         
         currentPrefetcher = ImagePrefetcher(urls: urls, options: options, completionHandler:  { skip, failed, completed in
-            debugPrint("ImagePrefetchProvider: Completed: \(completed.count), Skipped: \(skip.count), Failed: \(failed.count)")
+            #if DEBUG
+            print("ImagePrefetchProvider: Completed: \(completed.count), Skipped: \(skip.count), Failed: \(failed.count)")
+            #endif
         })
         
         currentPrefetcher?.start()

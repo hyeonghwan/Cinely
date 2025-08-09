@@ -63,12 +63,14 @@ final class CinemaDetailViewController: BaseViewController {
         navigationSetting()
         diffableDataSourceSetting()
         pageSetting()
+        
         setIndicator(indicator: indicatorContainerView)
+        
         collectionView.dataSource = diffableDataSources
         self.imagePrefetcher = ImagePrefetcher(
             collectionView: self.collectionView,
             pageControl: self.pageControl,
-            batchSize: 5
+            batchSize: 10
         )
     }
     
@@ -377,7 +379,7 @@ extension CinemaDetailViewController {
         
         private var lastPage: Int = 0
         private var batchSize: Int = 5
-        private let priorBatchStartIndex: Int = 1
+        private let priorBatchStartIndex: Int = 5
         
         init(collectionView: UICollectionView, pageControl: UIPageControl, batchSize: Int = 5) {
             self.collectionView = collectionView
@@ -388,7 +390,7 @@ extension CinemaDetailViewController {
             
             self.pageControlIndex
                 .distinctUntilChanged()
-                .throttle(.milliseconds(400), scheduler: MainScheduler.instance)
+                .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
                 .subscribe(with: self, onNext: { fetcher, currentPage in
                     if currentPage + fetcher.priorBatchStartIndex >= fetcher.lastPage {
                         fetcher.prefetchNextBatch(batchIndex: fetcher.lastPage + 1)
@@ -423,7 +425,9 @@ extension CinemaDetailViewController {
                 return nil
             }
             
-            ImagePrefetchProvider.shared.prefetchImages(for: models.map(\.file_path))
+            DispatchQueue.global(qos: .userInitiated).async {
+                ImagePrefetchProvider.shared.prefetchImages(for: models.map(\.file_path))
+            }
         }
     }
 }

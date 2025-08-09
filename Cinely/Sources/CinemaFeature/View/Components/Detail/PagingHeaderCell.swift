@@ -39,22 +39,6 @@ final class PagingHeaderCell: BaseCollectionViewCell, CellIdentifialble {
     }
     
     func set(filePath: String) {
-        guard let url = URL(string: filePath) else { return }
-        let options: KingfisherOptionsInfo = [.callbackQueue(.mainAsync)]
-        ImageCache.default.retrieveImage(forKey: url.absoluteString, options: options) { [weak self] result in
-            Task { @MainActor in
-                guard let self = self else { return }
-                switch result {
-                case .success(let value):
-                    if let image = value.image {
-                        self.postImageView.image = image
-                    } else {
-                        self.postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
-                    }
-                case .failure(_):
-                    self.postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
-                }
-            }
-        }
+        self.postImageView.setKFImage(image: filePath, size: CGSize(width: Self.width, height: Self.height))
     }
 }

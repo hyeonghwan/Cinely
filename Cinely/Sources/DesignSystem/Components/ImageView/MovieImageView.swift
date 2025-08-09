@@ -10,10 +10,19 @@ import Design
 import Kingfisher
 
 final class MovieImageView: UIImageView {
+    static var options: KingfisherOptionsInfo = [
+        .transition(.fade(0.3)),
+        .scaleFactor(UIScreen.main.scale),
+        .cacheOriginalImage,
+        .memoryCacheExpiration(.days(7)),
+        .diskCacheExpiration(.days(30)),
+        .callbackQueue(.mainAsync)
+    ]
     
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         self.contentMode = .scaleAspectFit
+        self.kf.indicatorType = .activity
     }
     
     required init?(coder: NSCoder) { fatalError("never called") }
@@ -24,21 +33,14 @@ final class MovieImageView: UIImageView {
     
     func setKFImage(image: String, size: CGSize) {
         if let url = URL(string: image) {
-            self.kf.indicatorType = .activity
+            var options = Self.options
+            options.append(.processor(DownsamplingImageProcessor(size: size)))
             let cacheKey = url.absoluteString
             let resources = KF.ImageResource(downloadURL: url, cacheKey: cacheKey)
             (self as UIImageView).kf.setImage(
                 with: resources,
                 placeholder: nil,
-                options: [
-                    .transition(.fade(0.3)),
-                    .processor(DownsamplingImageProcessor(size: size)),
-                    .scaleFactor(UIScreen.main.scale),
-                    .cacheOriginalImage,
-                    .memoryCacheExpiration(.days(7)),
-                    .diskCacheExpiration(.days(30)),
-                    .callbackQueue(.mainAsync)
-                ]
+                options: options
             )
         } else {
             self.image = Icons.filmFill?
