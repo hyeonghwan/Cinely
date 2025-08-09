@@ -27,7 +27,7 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
     }
     
     override func addAttributes() {
-        sectionTitleLabel.font = Font.bold21
+        sectionTitleLabel.font = Font.bold17
         sectionTitleLabel.textColor = Color.white
     }
     
@@ -51,7 +51,7 @@ final class SectionHeaderView: BaseReusableView, CellIdentifialble {
             .setAttributedTitle(
                 NSAttributedString(
                     string: text,
-                    attributes: [.foregroundColor : Color.green]
+                    attributes: [.foregroundColor : Color.green, .font : Font.bold17]
                 ),
                 for: .normal
             )
