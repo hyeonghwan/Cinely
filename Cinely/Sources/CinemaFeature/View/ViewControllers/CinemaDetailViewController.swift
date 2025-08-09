@@ -9,7 +9,6 @@ import UIKit
 import Design
 import RxCocoa
 import RxSwift
-
 import Kingfisher
 
 
@@ -24,11 +23,20 @@ final class CinemaDetailViewController: BaseViewController {
     }
     
     private var diffableDataSources: UICollectionViewDiffableDataSource<MovieDetailSection, MovieDetailItem>!
-    fileprivate var detailViewModel: CinemaDetailViewModel!
     private lazy var collectionView    = CinemaDetailCollectionView(layout: compositionalLayout())
     private let pageControl = UIPageControl()
-    private var indicatorContainerView = IndicatorContainerView()
     
+    private let pageCountingLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = Color.white
+        label.font = Font.light14
+        label.text = "Hello"
+        return label
+    }()
+    
+    private var indicatorContainerView = IndicatorContainerView()
+
+    fileprivate var detailViewModel: CinemaDetailViewModel!
     private var movieModel: TodayMovieModel!
     private var isSynopsisSectionExpanded: Bool = false
     private var isFavoriteTapped: BehaviorRelay<Bool>!
@@ -93,9 +101,11 @@ final class CinemaDetailViewController: BaseViewController {
     override func addChild() {
         self.view.addSubview(collectionView)
         self.collectionView.addSubview(pageControl)
-        
+        self.collectionView.addSubview(pageCountingLabel)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         pageControl.translatesAutoresizingMaskIntoConstraints = false
+        pageCountingLabel.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.bringSubviewToFront(pageCountingLabel)
     }
     
     override func addLayout() {
@@ -105,7 +115,10 @@ final class CinemaDetailViewController: BaseViewController {
             collectionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
             
-            pageControl.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
+            pageCountingLabel.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            pageCountingLabel.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            
+            pageControl.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor),
             pageControl.bottomAnchor.constraint(equalTo: collectionView.topAnchor, constant: PagingHeaderCell.height - 8)
         ])
     }
