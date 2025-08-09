@@ -17,8 +17,7 @@ final class CinemaDetailViewController: BaseViewController {
     static func create(with dependency: CinemaDetailViewModel) -> CinemaDetailViewController {
         let vc = CinemaDetailViewController()
         vc.detailViewModel = dependency
-        vc.movieModel = dependency.movieState.movieModel
-        vc.isFavoriteTapped = BehaviorRelay<Bool>(value: vc.movieModel.favorite)
+        vc.isFavoriteTapped = BehaviorRelay<Bool>(value: dependency.movieState.movieModel.favorite)
         return vc
     }
     
@@ -38,7 +37,6 @@ final class CinemaDetailViewController: BaseViewController {
 
     fileprivate var detailViewModel: CinemaDetailViewModel!
     private var imagePrefetcher: ImagePrefetcher!
-    private var movieModel: TodayMovieModel!
     private var isSynopsisSectionExpanded: Bool = false
     private var isProgrammaticScroll = false
     private var scrollTimer: Timer?
@@ -57,6 +55,7 @@ final class CinemaDetailViewController: BaseViewController {
     private let reloadComplete = PublishRelay<Void>()
     
     override func addAttributes() {
+        setupCustomTitle(title: detailViewModel.movieState.movieModel.title)
         setDefaultBackground()
         setNavigationTint()
         setNavigationBackButton()
@@ -357,9 +356,9 @@ extension CinemaDetailViewController {
                 ) as! BackDropFooterView
                 if let self {
                     footer.set(
-                        date: self.movieModel.releaseDate,
-                        rating: self.movieModel.voteAverage,
-                        genres: self.movieModel.genres.joined(separator: ", ")
+                        date: self.detailViewModel.movieState.movieModel.releaseDate,
+                        rating: self.detailViewModel.movieState.movieModel.voteAverage,
+                        genres: self.detailViewModel.movieState.movieModel.genres.joined(separator: ", ")
                     )
                 }
                 return footer
