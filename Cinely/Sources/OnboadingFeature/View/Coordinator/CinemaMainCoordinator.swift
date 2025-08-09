@@ -70,7 +70,6 @@ final class DefaultCinemaMainCoordinator: CinemaMainCoordinator, NicknamePresent
             )
         )
         detailVC.navigationItem.backButtonTitle = ""
-        detailVC.navigationItem.title = movieState.title
         rootViewController.pushViewController(detailVC, animated: true)
     }
     
