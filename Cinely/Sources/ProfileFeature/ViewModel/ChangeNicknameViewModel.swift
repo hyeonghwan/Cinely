@@ -13,7 +13,11 @@ final class ChangeNickNameViewModel {
     init(appState: AppState) {
         self.appState = appState
         defer {
-            // TODO: Bind to AppState
+            changeNicknameTrigger
+                .subscribe(with: self, onNext: { vm, value in
+                    vm.appState.changeNickNameBinder.onNext(value)
+                })
+                .disposed(by: disposeBag)
         }
     }
     
