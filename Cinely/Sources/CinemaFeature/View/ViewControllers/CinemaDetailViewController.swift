@@ -37,8 +37,11 @@ final class CinemaDetailViewController: BaseViewController {
     private var indicatorContainerView = IndicatorContainerView()
 
     fileprivate var detailViewModel: CinemaDetailViewModel!
+    private var imagePrefetcher: ImagePrefetcher!
     private var movieModel: TodayMovieModel!
     private var isSynopsisSectionExpanded: Bool = false
+    private var isProgrammaticScroll = false
+    private var scrollTimer: Timer?
     private var isFavoriteTapped: BehaviorRelay<Bool>!
     private var disposeBag = DisposeBag()
     
@@ -62,6 +65,11 @@ final class CinemaDetailViewController: BaseViewController {
         pageSetting()
         setIndicator(indicator: indicatorContainerView)
         collectionView.dataSource = diffableDataSources
+        self.imagePrefetcher = ImagePrefetcher(
+            collectionView: self.collectionView,
+            pageControl: self.pageControl,
+            batchSize: 5
+        )
     }
     
     private func navigationSetting() {
@@ -94,7 +102,6 @@ final class CinemaDetailViewController: BaseViewController {
         pageControl.currentPageIndicatorTintColor = Color.green
         pageControl.pageIndicatorTintColor = Color.green.withAlphaComponent(0.6)
         pageControl.currentPage = 0
-        pageControl.numberOfPages = 5
         pageControl.isHidden = true
     }
     
@@ -140,9 +147,17 @@ final class CinemaDetailViewController: BaseViewController {
     
     private func viewAction() {
         pageControl.rx.controlEvent(.valueChanged)
-            .subscribe(with: self, onNext: { vc, value in
-                let indexPath = IndexPath(item: vc.pageControl.currentPage, section: 0)
+            .withUnretained(self)
+            .map { vc, _ in vc.pageControl.currentPage }
+            .subscribe(with: self, onNext: { vc, currentPage in
+                let indexPath = IndexPath(item: currentPage, section: 0)
                 vc.collectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
+                vc.pageCountingLabel.text = "\(currentPage + 1)/\(vc.pageControl.numberOfPages)"
+                vc.isProgrammaticScroll = true
+                vc.scrollTimer?.invalidate()
+                vc.scrollTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
+                    vc.isProgrammaticScroll = false
+                }
             })
             .disposed(by: disposeBag)
         
@@ -215,30 +230,24 @@ final class CinemaDetailViewController: BaseViewController {
             
             if section == .pagingHeader {
                 pageControl.numberOfPages = items.count
+                pageCountingLabel.text = "1/\(items.count)"
             }
         }
         
         self.reloadComplete.accept(())
         
         self.diffableDataSources.apply(snapshot) { [weak self] in
-            self?.pageControl.isHidden = sectionAndModels.isEmpty
+            if let hidden = self?.pageControl.isHidden, hidden {
+                self?.pageControl.isHidden = false
+                self?.imagePrefetcher.pageControlIndex.accept(0)
+            }
         }
     }
-    
+
     @objc
     private func moveToSearchDetail(_ sender: Any) {
         let searchVC = CinemaMovieSearchVIewController()
         self.navigationController?.pushViewController(searchVC, animated: true)
-    }
-    
-    private func pageControllSetting(_ pagingHeaderSection: NSCollectionLayoutSection) {
-        pagingHeaderSection.visibleItemsInvalidationHandler = { [weak self] visible, contentOffset, environment in
-            let currentPage = Int(max(0, round(contentOffset.x / environment.container.contentSize.width)))
-            let isHorizonTalScroll = environment.container.contentSize.width >= environment.container.contentSize.height
-            if isHorizonTalScroll {
-                self?.pageControl.currentPage = currentPage
-            }
-        }
     }
 }
 
@@ -257,7 +266,18 @@ extension CinemaDetailViewController {
             switch section {
             case .pagingHeader:
                 let pagingHeaderSection = CinemaDetailCollectionView.pagingHeaderSection()
-                self.pageControllSetting(pagingHeaderSection)
+                pagingHeaderSection.visibleItemsInvalidationHandler = { [weak self] visible, contentOffset, environment in
+                    guard let self, !self.isProgrammaticScroll else {
+                        return
+                    }
+                    let currentPage = Int(max(0, round(contentOffset.x / environment.container.contentSize.width)))
+                    let isHorizontalScroll = environment.container.contentSize.width >= environment.container.contentSize.height
+                    if isHorizontalScroll {
+                        self.pageControl.currentPage = currentPage
+                        self.imagePrefetcher.pageControlIndex.accept(currentPage)
+                        self.pageCountingLabel.text = "\(currentPage + 1)/\(self.pageControl.numberOfPages)"
+                    }
+                }
                 return pagingHeaderSection
             case .synopsis:
                 return CinemaDetailCollectionView.synopsisSection()
@@ -343,6 +363,67 @@ extension CinemaDetailViewController {
                 return footer
             }
             return nil
+        }
+    }
+}
+
+extension CinemaDetailViewController {
+    private class ImagePrefetcher {
+        weak var collectionView: UICollectionView?
+        weak var pageControl: UIPageControl?
+        
+        private(set) var pageControlIndex = PublishRelay<Int>()
+        private var disposeBag = DisposeBag()
+        
+        private var lastPage: Int = 0
+        private var batchSize: Int = 5
+        private let priorBatchStartIndex: Int = 1
+        
+        init(collectionView: UICollectionView, pageControl: UIPageControl, batchSize: Int = 5) {
+            self.collectionView = collectionView
+            self.pageControl = pageControl
+            self.batchSize = batchSize
+            
+            ImagePrefetchProvider.shared.setCacheSize(size: CGSize(width: PagingHeaderCell.width, height: PagingHeaderCell.height))
+            
+            self.pageControlIndex
+                .distinctUntilChanged()
+                .throttle(.milliseconds(400), scheduler: MainScheduler.instance)
+                .subscribe(with: self, onNext: { fetcher, currentPage in
+                    if currentPage + fetcher.priorBatchStartIndex >= fetcher.lastPage {
+                        fetcher.prefetchNextBatch(batchIndex: fetcher.lastPage + 1)
+                    }
+                })
+                .disposed(by: disposeBag)
+        }
+
+        private func prefetchNextBatch(batchIndex: Int) {
+            guard let diffableDataSources = collectionView?.dataSource as? UICollectionViewDiffableDataSource<MovieDetailSection, MovieDetailItem> else {
+                return
+            }
+            guard diffableDataSources.snapshot().indexOfSection(.pagingHeader) != nil else {
+                return
+            }
+            
+            let items = diffableDataSources.snapshot().itemIdentifiers(inSection: .pagingHeader)
+            
+            let startIndex = batchIndex
+            let endIndex = min(startIndex + batchSize, items.count)
+            
+            if startIndex >= endIndex {
+                return
+            }
+            
+            self.lastPage = endIndex - 1
+            
+            let models = items[startIndex..<endIndex].compactMap { item -> MovieDetailModel? in
+                if case let .pagingHeader(model) = item {
+                    return model
+                }
+                return nil
+            }
+            
+            ImagePrefetchProvider.shared.prefetchImages(for: models.map(\.file_path))
         }
     }
 }
