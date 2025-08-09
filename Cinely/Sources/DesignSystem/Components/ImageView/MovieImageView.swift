@@ -24,7 +24,22 @@ final class MovieImageView: UIImageView {
     
     func setKFImage(image: String, size: CGSize) {
         if let url = URL(string: image) {
-            (self as UIImageView).kf.downSizingImage(url: url, size: size)
+            self.kf.indicatorType = .activity
+            let cacheKey = url.absoluteString
+            let resources = KF.ImageResource(downloadURL: url, cacheKey: cacheKey)
+            (self as UIImageView).kf.setImage(
+                with: resources,
+                placeholder: nil,
+                options: [
+                    .transition(.fade(0.3)),
+                    .processor(DownsamplingImageProcessor(size: size)),
+                    .scaleFactor(UIScreen.main.scale),
+                    .cacheOriginalImage,
+                    .memoryCacheExpiration(.days(7)),
+                    .diskCacheExpiration(.days(30)),
+                    .callbackQueue(.mainAsync)
+                ]
+            )
         } else {
             self.image = Icons.filmFill?
                 .withTintColor(
