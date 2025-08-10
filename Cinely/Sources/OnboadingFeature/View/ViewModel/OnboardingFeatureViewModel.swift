@@ -16,7 +16,13 @@ final class OnboardingFeatureViewModel {
     init(appState: AppState) {
         self.appState = appState
         defer {
-            // TODO: Bind to AppState
+            singUpTrigger
+                .subscribe(with: self, onNext: { vm, value in
+                    vm.appState.signUpBinder.onNext(
+                        User(nickname: value, likeCount: 0, signUpDate: Date.now.toISO8601String())
+                    )
+                })
+                .disposed(by: disposeBag)
         }
     }
     
