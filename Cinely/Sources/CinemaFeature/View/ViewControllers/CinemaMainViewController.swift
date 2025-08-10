@@ -291,17 +291,26 @@ extension CinemaMainViewController {
             }
         }
         
-        diffableDataSources.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
+        diffableDataSources.supplementaryViewProvider = { collectionView, kind, indexPath in
             if kind == UICollectionView.elementKindSectionHeader {
                 if indexPath.section == 1 || indexPath.section == 2 {
                     let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: SectionHeaderView.id, for: indexPath) as! SectionHeaderView
                     header.setTitle(indexPath.section == 1 ? "최근검색어" : "오늘의 영화")
                     header.setButtonTitle("전체삭제")
                     
-                    if indexPath.section == 1, let self {
+                    if indexPath.section == 1 {
                         header.deleteButton.rx.tap
-                            .bind(to: self.deleteAllRecentSearchModel)
-                            .disposed(by: disposeBag)
+                            .withUnretained(self)
+                            .map { vc, _ -> (AlertMessage, () -> Void) in
+                                (
+                                    .isAllDelete,
+                                    { vc.deleteAllRecentSearchModel.onNext(()) }
+                                )
+                            }
+                            .subscribe(with: self, onNext: { vc, alertContentTuple in
+                                vc.searchViewAllDeleteAlert.onNext(alertContentTuple)
+                            })
+                            .disposed(by: header.disposeBag)
                     }
                     
                     header.setDeleteButtonHidden(indexPath.section != 1)
