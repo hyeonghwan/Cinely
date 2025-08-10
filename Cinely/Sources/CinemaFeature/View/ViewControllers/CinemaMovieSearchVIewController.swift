@@ -341,17 +341,3 @@ extension CinemaMovieSearchVIewController: UITableViewDelegate {
         }
     }
 }
-
-// MARK: Alert Binder
-extension CinemaMovieSearchVIewController {
-    var searchViewAllDeleteAlert: Binder<(alertMessage: AlertMessage, delete: (() -> Void))> {
-        Binder<(alertMessage: AlertMessage, delete: (() -> Void))>(self) { vc, type in
-            vc.showDeleteAlert(
-                title: type.alertMessage.title,
-                message: type.alertMessage.message,
-                { },
-                type.delete
-            )
-        }
-    }
-}
