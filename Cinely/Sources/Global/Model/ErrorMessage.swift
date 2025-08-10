@@ -41,3 +41,26 @@ struct ErrorMessage: Hashable, Equatable {
         ErrorMessage(title: "에러", message: "시스템 내부에서 발생했습니다. 관리자에게 문의 해주세요!")
     }
 }
+
+
+struct AlertMessage: Hashable, Equatable {
+    let uuid = UUID()
+    let title: String
+    let message: String
+    
+    static func ==(_ lhs: Self, _ rhs: Self) -> Bool {
+        lhs.uuid == rhs.uuid
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid)
+    }
+    
+    var retry: () -> Void = { }
+    
+    static var isAllDelete: AlertMessage {
+        AlertMessage(title: "삭제할까요?", message: "최근 검색이 모두 삭제되면 다시 볼 수 없어요.")
+    }
+    
+    
+}

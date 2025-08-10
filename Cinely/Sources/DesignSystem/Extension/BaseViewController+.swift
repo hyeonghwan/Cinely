@@ -9,7 +9,7 @@ import UIKit
 import Design
 import RxSwift
 
-extension BaseViewController {
+extension BaseViewController {    
     var errorDefaultOKAlert: Binder<ErrorMessage> {
         Binder<ErrorMessage>(self) { vc, errMessage in
             vc.showDefaultAlert(
@@ -68,6 +68,16 @@ extension BaseViewController {
             title: title,
             message: message,
             action: ok, cancel
+        )
+    }
+    
+    public func showDeleteAlert(title: String, message: String, _ ok: @escaping () -> Void, _ delete: @escaping () -> Void) {
+        let ok = AlertAction(text: "확인", color: .black, action: { ok() })
+        let delete = AlertAction(text: "삭제", color: .red, action: { delete() })
+        self.showAlert(
+            title: title,
+            message: message,
+            action: ok, delete
         )
     }
     

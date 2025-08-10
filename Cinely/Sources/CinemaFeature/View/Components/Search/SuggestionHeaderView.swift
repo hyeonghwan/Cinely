@@ -11,6 +11,7 @@ import RxSwift
 
 final class SuggestionHeaderView: UITableViewHeaderFooterView, CellIdentifialble {
     private(set) var baseView = TitleActionButtonBaseView()
+    private(set) var disposeBag = DisposeBag()
     
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
@@ -21,6 +22,11 @@ final class SuggestionHeaderView: UITableViewHeaderFooterView, CellIdentifialble
     
     required init?(coder: NSCoder) {
         fatalError()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
     }
     
     private func addAttributes() {

@@ -7,11 +7,18 @@
 
 import UIKit
 import HwanKit
+import RxSwift
 
 final class RecentSearchCell: BaseTableViewCell, CellIdentifialble {
     private let iconImageView = UIImageView()
     private let recentWordLabel = UILabel()
-    private let deleteButton = UIButton()
+    private(set) var deleteButton = UIButton()
+    private(set) var disposeBag = DisposeBag()
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        disposeBag = DisposeBag()
+    }
     
     func set(word: String) {
         recentWordLabel.text = word

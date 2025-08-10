@@ -95,7 +95,9 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     private let favoriteButtonTapped = PublishSubject<(row: Int, flag: Bool)>()
     private let viewDidLoad = PublishSubject<Void>()
     private let searchModeTrigger = PublishSubject<CinemaSearchViewModel.SearchMode>()
-    private let recentHistoryTapped = PublishSubject<String>()
+    private let recentHistoryTapped = PublishSubject<RecentSearchModel>()
+    private let allDeleteActionTrigger = PublishSubject<Void>()
+    private let recentSearchWordDeleteTrigger = PublishSubject<RecentSearchModel>()
     private var disposeBag = DisposeBag()
     
     private func keyboardWillAppear(notification: Notification) {
@@ -148,19 +150,20 @@ final class CinemaMovieSearchVIewController: BaseViewController {
             searchController.searchBar.rx.searchButtonClicked
                 .withUnretained(self)
                 .do(onNext: { vc, _ in vc.searchModeTrigger.onNext(.searchResult) })
-                .compactMap { vc, _ in vc.searchController.searchBar.text }
+                .compactMap { vc, _ in
+                    vc.searchController.searchBar.text
+                }
                 .filter { !$0.isEmpty },
             
             recentHistoryTapped
-                .do(onNext: { [weak self] word in
+                .do(onNext: { [weak self] recentSearchModel in
                     self?.searchModeTrigger.onNext(.searchResult)
-                    self?.searchController.searchBar.text = word
+                    self?.searchController.searchBar.text = recentSearchModel.word
                     self?.searchController.searchBar.resignFirstResponder()
                 })
+                .map(\.word)
                 .filter { !$0.isEmpty }
         )
-            .startWith(word)
-            .filter { !$0.isEmpty }
         
         let pagingRequest = tableView.rx.didScroll
             .throttle(.milliseconds(600), latest: true, scheduler: MainScheduler.instance)
@@ -175,7 +178,9 @@ final class CinemaMovieSearchVIewController: BaseViewController {
                 pagingFinish: pagingFinishInput.asObservable(),
                 favoriteButtonTapped: favoriteButtonTapped.asObservable(),
                 viewDidLoad: viewDidLoad.asObservable(),
-                searchModeTrigger: searchModeTrigger.asObservable()
+                searchModeTrigger: searchModeTrigger.asObservable(),
+                allDeleteActionTrigger: allDeleteActionTrigger.asObservable(),
+                recentSearchWordDeleteTrigger: recentSearchWordDeleteTrigger.asObservable()
             )
         )
         
@@ -203,11 +208,20 @@ final class CinemaMovieSearchVIewController: BaseViewController {
                 switch model {
                 case let .suggestion(recentWord):
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: RecentSearchCell.id) as? RecentSearchCell else { fatalError() }
-                    cell.set(word: recentWord)
+                    
+                    cell.set(word: recentWord.word)
+                    
+                    cell.deleteButton.rx.tap
+                        .subscribe(with: self, onNext: { vc, _ in
+                            vc.recentSearchWordDeleteTrigger.onNext(recentWord)
+                        })
+                        .disposed(by: cell.disposeBag)
+                    
                     cell.selectionStyle = .none
+                    
                     return cell
                     
-                case .empty:
+                case .emptySearchResult:
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaEmptyCell.id) as? CinemaEmptyCell else { fatalError() }
                     cell.separatorInset = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
                     cell.selectionStyle = .none
@@ -249,6 +263,7 @@ final class CinemaMovieSearchVIewController: BaseViewController {
                             }
                         })
                         .disposed(by: cell.disposeBag)
+                    cell.selectionStyle = .none
                     cell.backgroundColor = .black
                     return cell
                     
@@ -299,6 +314,18 @@ extension CinemaMovieSearchVIewController: UITableViewDelegate {
         switch searchViewModel.currentMode.value {
         case .suggestion:
             let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: SuggestionHeaderView.id) as! SuggestionHeaderView
+            
+            headerView.baseView.actionButton.rx.tap
+                .withUnretained(self)
+                .map { vc, _ -> (AlertMessage, () -> Void) in
+                    (
+                        .isAllDelete,
+                        { vc.allDeleteActionTrigger.onNext(()) }
+                    )
+                }
+                .bind(to: self.searchViewAllDeleteAlert)
+                .disposed(by: headerView.disposeBag)
+            
             return headerView
         case .searchResult:
             return nil
@@ -311,6 +338,20 @@ extension CinemaMovieSearchVIewController: UITableViewDelegate {
             return 50
         case .searchResult:
             return 0
+        }
+    }
+}
+
+// MARK: Alert Binder
+extension CinemaMovieSearchVIewController {
+    var searchViewAllDeleteAlert: Binder<(alertMessage: AlertMessage, delete: (() -> Void))> {
+        Binder<(alertMessage: AlertMessage, delete: (() -> Void))>(self) { vc, type in
+            vc.showDeleteAlert(
+                title: type.alertMessage.title,
+                message: type.alertMessage.message,
+                { },
+                type.delete
+            )
         }
     }
 }

@@ -17,6 +17,8 @@ final class CinemaSearchViewModel {
         let favoriteButtonTapped: Observable<(row: Int, flag: Bool)>
         let viewDidLoad: Observable<Void>
         let searchModeTrigger: Observable<SearchMode>
+        let allDeleteActionTrigger: Observable<Void>
+        let recentSearchWordDeleteTrigger: Observable<RecentSearchModel>
     }
     
     struct Output {
@@ -26,11 +28,12 @@ final class CinemaSearchViewModel {
     }
     
     enum SearchItem {
-        case empty
+        case emptySearchResult
+        case emptySearchHistory
         case movie(TodayMovieModel)
         case refresh
         case last
-        case suggestion(String)
+        case suggestion(RecentSearchModel)
     }
     
     enum SearchMode {
@@ -56,8 +59,8 @@ final class CinemaSearchViewModel {
         self.word = dependency.word
     }
     
-    private let searchMovieList = BehaviorRelay<[SearchItem]>(value: [.empty])
-    private let suggestionModels = BehaviorRelay<[String]>(value: [])
+    private let searchMovieList = BehaviorRelay<[SearchItem]>(value: [.emptySearchResult])
+    private let suggestionModels = BehaviorRelay<[RecentSearchModel]>(value: [])
     private(set) var currentMode = BehaviorRelay<SearchMode>(value: .searchResult)
     
     private let currentPageState = BehaviorRelay<PagingState>(value: PagingState(currentPage: 1, queryText: "", total: 1))
@@ -76,7 +79,8 @@ final class CinemaSearchViewModel {
         .map { mode, suggestions, searchResults -> [SearchItem] in
             switch mode {
             case .suggestion:
-                return suggestions.map { SearchItem.suggestion($0) }
+                let suggestions = suggestions.map { SearchItem.suggestion($0) }
+                return suggestions.isEmpty ? [.emptySearchHistory] : suggestions
             case .searchResult:
                 return searchResults
             }
@@ -102,6 +106,14 @@ final class CinemaSearchViewModel {
             .bind(to: appState.favoriteListBinder)
             .disposed(by: disposeBag)
         
+        input.allDeleteActionTrigger
+            .bind(to: appState.removeAllRecentSearchBinder)
+            .disposed(by: disposeBag)
+        
+        input.recentSearchWordDeleteTrigger
+            .bind(to: appState.removeRecentSearchBinder)
+            .disposed(by: disposeBag)
+        
         appState.favoriteMoviesState.map { $0.map { model in model.id }}
             .filter { [weak self] _ in (self?.viewDidLoaded ?? false) }
             .withUnretained(self)
@@ -121,7 +133,6 @@ final class CinemaSearchViewModel {
             .disposed(by: disposeBag)
         
         appState.searchResultState
-            .map { $0.map { $0.word } }
             .bind(to: suggestionModels)
             .disposed(by: disposeBag)
         
@@ -158,6 +169,8 @@ final class CinemaSearchViewModel {
         )
         
         input.submit
+            .startWith(self.word)
+            .filter { !$0.isEmpty }
             .withUnretained(self)
             .flatMap { (vm, query) -> Observable<(MovieSearchApiResource.ResponseType, String, [Int])> in
                 Observable.zip(
@@ -239,7 +252,7 @@ final class CinemaSearchViewModel {
         return Output(
             outputData: outputData,
             isPagingLoading: isPagingLoading.asDriver(),
-            alertTrigger: alertTrigger.asDriver(onErrorJustReturn: ErrorMessage.default)
+            alertTrigger: alertTrigger.asDriver(onErrorJustReturn: .default)
         )
     }
     
@@ -259,7 +272,7 @@ final class CinemaSearchViewModel {
         self.currentPageState.accept(newPageState)
         
         if models.isEmpty {
-            self.searchMovieList.accept([SearchItem.empty])
+            self.searchMovieList.accept([SearchItem.emptySearchResult])
         } else {
             if newPageState.isLast {
                 self.searchMovieList.accept(models + [.last])
