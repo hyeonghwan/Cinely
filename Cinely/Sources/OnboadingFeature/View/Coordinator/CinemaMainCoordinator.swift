@@ -81,12 +81,13 @@ final class DefaultCinemaMainCoordinator: CinemaMainCoordinator, NicknamePresent
                     appStorage: dependency.appStorage,
                     movieSearchProvider: DefaultMovieSearchProvider(
                         networkManager: dependency.networkManager
-                    )
+                    ),
+                    word: word
                 )
             ),
-            coordinator: self,
-            word: word
+            coordinator: self
         )
+        searchVC.hidesBottomBarWhenPushed = true
         rootViewController.pushViewController(searchVC, animated: true)
     }
     

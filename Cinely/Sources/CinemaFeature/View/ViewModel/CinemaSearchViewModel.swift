@@ -42,6 +42,7 @@ final class CinemaSearchViewModel {
         let appState: AppState
         let appStorage: PersistentStorage
         let movieSearchProvider: MovieSearchProvider
+        let word: String
     }
     
     private let appState: AppState
@@ -49,9 +50,10 @@ final class CinemaSearchViewModel {
     private let movieSearchProvider: MovieSearchProvider
     
     init(dependency: Dependency) {
-        appState = dependency.appState
-        appStorage = dependency.appStorage
-        movieSearchProvider = dependency.movieSearchProvider
+        self.appState = dependency.appState
+        self.appStorage = dependency.appStorage
+        self.movieSearchProvider = dependency.movieSearchProvider
+        self.word = dependency.word
     }
     
     private let searchMovieList = BehaviorRelay<[SearchItem]>(value: [.empty])
@@ -63,8 +65,7 @@ final class CinemaSearchViewModel {
     private var viewDidLoaded = false
     private let alertTrigger = PublishRelay<ErrorMessage>()
     private var disposeBag = DisposeBag()
-    var retryCount: Int = 0
-    
+    var word: String
     
     var outputData: Driver<[SearchItem]> {
         return Observable.combineLatest(

@@ -15,14 +15,12 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     
     static func create(
         with dependency: CinemaSearchViewModel,
-        coordinator: CinemaMainCoordinator,
-        word: String
+        coordinator: CinemaMainCoordinator
     ) -> CinemaMovieSearchVIewController
     {
         let vc = CinemaMovieSearchVIewController()
         vc.searchViewModel = dependency
         vc.coordinator = coordinator
-        vc.word = word
         return vc
     }
     
@@ -30,7 +28,6 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     private var searchViewModel: CinemaSearchViewModel!
     private let tableView = CinemaSearchTableView(frame: .zero, style: .grouped)
     private var tableViewBottomConstraint: NSLayoutConstraint!
-    private var word: String = ""
     private let searchController = UISearchController(searchResultsController: nil)
     
     override func addAttributes() {
@@ -51,7 +48,7 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         self.navigationItem.title = "영화 검색"
         navigationItem.hidesSearchBarWhenScrolling = false
         self.navigationItem.searchController = searchController
-        self.navigationItem.searchController?.searchBar.text = self.word
+        self.navigationItem.searchController?.searchBar.text = searchViewModel.word.isEmpty ? nil : searchViewModel.word
         self.navigationItem.searchController?.searchBar.searchTextField.textColor = .white
         
         let toolbar = UIToolbar()
