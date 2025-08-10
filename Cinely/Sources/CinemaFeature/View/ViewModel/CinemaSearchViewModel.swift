@@ -16,10 +16,11 @@ final class CinemaSearchViewModel {
         let pagingFinish: Observable<Void>
         let favoriteButtonTapped: Observable<(row: Int, flag: Bool)>
         let viewDidLoad: Observable<Void>
+        let searchModeTrigger: Observable<SearchMode>
     }
     
     struct Output {
-        var searchMovieList: Driver<[SearchItem]>
+        var outputData: Driver<[SearchItem]>
         var isPagingLoading: Driver<Bool>
         var alertTrigger: Driver<ErrorMessage>
     }
@@ -29,6 +30,12 @@ final class CinemaSearchViewModel {
         case movie(TodayMovieModel)
         case refresh
         case last
+        case suggestion(String)
+    }
+    
+    enum SearchMode {
+        case suggestion
+        case searchResult
     }
     
     struct Dependency {
@@ -48,12 +55,33 @@ final class CinemaSearchViewModel {
     }
     
     private let searchMovieList = BehaviorRelay<[SearchItem]>(value: [.empty])
+    private let suggestionModels = BehaviorRelay<[String]>(value: [])
+    private(set) var currentMode = BehaviorRelay<SearchMode>(value: .searchResult)
+    
     private let currentPageState = BehaviorRelay<PagingState>(value: PagingState(currentPage: 1, queryText: "", total: 1))
     private let isPagingLoading = BehaviorRelay<Bool>(value: false)
     private var viewDidLoaded = false
     private let alertTrigger = PublishRelay<ErrorMessage>()
     private var disposeBag = DisposeBag()
     var retryCount: Int = 0
+    
+    
+    var outputData: Driver<[SearchItem]> {
+        return Observable.combineLatest(
+            currentMode,
+            suggestionModels,
+            searchMovieList
+        )
+        .map { mode, suggestions, searchResults -> [SearchItem] in
+            switch mode {
+            case .suggestion:
+                return suggestions.map { SearchItem.suggestion($0) }
+            case .searchResult:
+                return searchResults
+            }
+        }
+        .asDriver(onErrorJustReturn: [])
+    }
     
     func transform(input: Input) -> Output {
         input.viewDidLoad
@@ -89,6 +117,15 @@ final class CinemaSearchViewModel {
                 }
             }
             .bind(to: searchMovieList)
+            .disposed(by: disposeBag)
+        
+        appState.searchResultState
+            .map { $0.map { $0.word } }
+            .bind(to: suggestionModels)
+            .disposed(by: disposeBag)
+        
+        input.searchModeTrigger
+            .bind(to: self.currentMode)
             .disposed(by: disposeBag)
         
         input.favoriteButtonTapped
@@ -148,7 +185,12 @@ final class CinemaSearchViewModel {
             appState.favoriteMoviesState.map { $0.map { model in model.id } }
         )
         
-        input.paging
+        let pagingInput = input.paging
+            .withLatestFrom(currentMode)
+            .filter { $0 == .searchResult }  // searchResult 모드일 때만
+            .map { _ in () }
+        
+        pagingInput
             .withLatestFrom(isPagingLoading)
             .filter { !$0 }
             .do(onNext: { [weak self] _ in self?.isPagingLoading.accept(true) })
@@ -194,7 +236,7 @@ final class CinemaSearchViewModel {
         .disposed(by: disposeBag)
         
         return Output(
-            searchMovieList: searchMovieList.asDriver(),
+            outputData: outputData,
             isPagingLoading: isPagingLoading.asDriver(),
             alertTrigger: alertTrigger.asDriver(onErrorJustReturn: ErrorMessage.default)
         )
@@ -224,6 +266,7 @@ final class CinemaSearchViewModel {
                 self.searchMovieList.accept(models + [.refresh])
             }
         }
+        self.currentMode.accept(.searchResult)
     }
     
     private func applyPagingResult(pagedResponse: MovieSearchApiResource.ResponseType,
@@ -246,6 +289,7 @@ final class CinemaSearchViewModel {
         
         self.searchMovieList.accept(currentList)
         self.currentPageState.accept(newPageState)
+        self.currentMode.accept(.searchResult)
     }
 }
 

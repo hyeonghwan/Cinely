@@ -28,7 +28,8 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     
     private weak var coordinator: CinemaMainCoordinator?
     private var searchViewModel: CinemaSearchViewModel!
-    private let tableView = CinemaSearchTableView()
+    private let tableView = CinemaSearchTableView(frame: .zero, style: .grouped)
+    private var tableViewBottomConstraint: NSLayoutConstraint!
     private var word: String = ""
     private let searchController = UISearchController(searchResultsController: nil)
     
@@ -38,10 +39,10 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         setNavigationBackButton()
         tableView.estimatedRowHeight = 200
         tableView.backgroundColor = .black
+        tableView.separatorStyle = .none
     }
     
     private func searchBarSetting() {
-        searchController.searchBar.placeholder = "영화 제목을 검색해주세요"
         searchController.searchBar.searchTextField.attributedPlaceholder = NSAttributedString(
             string: "영화 제목을 검색해주세요",
             attributes: [.foregroundColor : Color.white.withAlphaComponent(0.6)]
@@ -52,6 +53,19 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         self.navigationItem.searchController = searchController
         self.navigationItem.searchController?.searchBar.text = self.word
         self.navigationItem.searchController?.searchBar.searchTextField.textColor = .white
+        
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let keyboardDownButton = UIBarButtonItem(
+            image: Icons.keyboardDown,
+            style: .plain,
+            target: self,
+            action: #selector(keyboardDown(_:))
+        )
+        keyboardDownButton.tintColor = Color.white
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        toolbar.items = [flexibleSpace, keyboardDownButton]
+        searchController.searchBar.searchTextField.inputAccessoryView = toolbar
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -70,28 +84,86 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     }
     
     override func addLayout() {
+        tableViewBottomConstraint = tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        tableViewBottomConstraint.isActive = true
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
     }
     
     private let pagingFinishInput = PublishSubject<Void>()
     private let favoriteButtonTapped = PublishSubject<(row: Int, flag: Bool)>()
     private let viewDidLoad = PublishSubject<Void>()
+    private let searchModeTrigger = PublishSubject<CinemaSearchViewModel.SearchMode>()
+    private let recentHistoryTapped = PublishSubject<String>()
     private var disposeBag = DisposeBag()
     
+    private func keyboardWillAppear(notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        let animationDuration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.3
+        let keyboardHeight = keyboardFrame.height
+        let tabBarHeight = tabBarController?.tabBar.frame.height ?? 0
+        tableViewBottomConstraint.constant = -(keyboardHeight - tabBarHeight)
+        UIView.animate(withDuration: animationDuration) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    @objc func keyboardDown(_ sender: Any) {
+        searchController.searchBar.searchTextField.resignFirstResponder()
+    }
+    
+    private func keyboardWillDisappear(notification: Notification) {
+        tableViewBottomConstraint.constant = 0
+        let animationDuration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.3
+        UIView.animate(withDuration: animationDuration) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     override func binding() {
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillShowNotification)
+            .do(onNext: { [weak self] in
+                self?.keyboardWillAppear(notification: $0)
+                self?.tableView.setContentOffset(.zero, animated: false)
+            })
+            .map { _ in CinemaSearchViewModel.SearchMode.suggestion }
+            .bind(to: searchModeTrigger)
+            .disposed(by: disposeBag)
+        
+        NotificationCenter.default.rx.notification(UIResponder.keyboardWillHideNotification)
+            .subscribe(with: self, onNext: { vc, notification in
+                vc.tableView.setContentOffset(.zero, animated: false)
+                vc.keyboardWillDisappear(notification: notification)
+            })
+            .disposed(by: disposeBag)
+            
+        
+        self.tableView.rx
+            .setDelegate(self)
+            .disposed(by: disposeBag)
         
         // MARK: Input
-        let searchSumit = searchController
-            .searchBar.rx.searchButtonClicked
-             .withUnretained(self)
-             .compactMap { vc, _ in vc.searchController.searchBar.text }
-             .startWith(word)
-             .filter { !$0.isEmpty }
+        let searchSubmit = Observable.merge(
+            searchController.searchBar.rx.searchButtonClicked
+                .withUnretained(self)
+                .do(onNext: { vc, _ in vc.searchModeTrigger.onNext(.searchResult) })
+                .compactMap { vc, _ in vc.searchController.searchBar.text }
+                .filter { !$0.isEmpty },
+            
+            recentHistoryTapped
+                .do(onNext: { [weak self] word in
+                    self?.searchModeTrigger.onNext(.searchResult)
+                    self?.searchController.searchBar.text = word
+                    self?.searchController.searchBar.resignFirstResponder()
+                })
+                .filter { !$0.isEmpty }
+        )
+            .startWith(word)
+            .filter { !$0.isEmpty }
         
         let pagingRequest = tableView.rx.didScroll
             .throttle(.milliseconds(600), latest: true, scheduler: MainScheduler.instance)
@@ -101,11 +173,12 @@ final class CinemaMovieSearchVIewController: BaseViewController {
         
         let output = searchViewModel.transform(
             input: CinemaSearchViewModel.Input(
-                submit: searchSumit,
+                submit: searchSubmit,
                 paging: pagingRequest.map(\.void),
                 pagingFinish: pagingFinishInput.asObservable(),
                 favoriteButtonTapped: favoriteButtonTapped.asObservable(),
-                viewDidLoad: viewDidLoad.asObservable()
+                viewDidLoad: viewDidLoad.asObservable(),
+                searchModeTrigger: searchModeTrigger.asObservable()
             )
         )
         
@@ -113,6 +186,8 @@ final class CinemaMovieSearchVIewController: BaseViewController {
             .subscribe(with: self, onNext: { vc, model in
                 if case let .movie(movieModel) = model {
                     vc.coordinator?.moveToDetail(movieModel)
+                } else if case let .suggestion(word) = model {
+                    vc.recentHistoryTapped.onNext(word)
                 }
             })
             .disposed(by: disposeBag)
@@ -126,9 +201,15 @@ final class CinemaMovieSearchVIewController: BaseViewController {
     }
     
     private func searchResultBinding(output: CinemaSearchViewModel.Output) {
-        output.searchMovieList
+        output.outputData
             .drive(tableView.rx.items) { tableView, row, model in
                 switch model {
+                case let .suggestion(recentWord):
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: RecentSearchCell.id) as? RecentSearchCell else { fatalError() }
+                    cell.set(word: recentWord)
+                    cell.selectionStyle = .none
+                    return cell
+                    
                 case .empty:
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaEmptyCell.id) as? CinemaEmptyCell else { fatalError() }
                     cell.separatorInset = UIEdgeInsets(top: 0, left: UIScreen.main.bounds.width, bottom: 0, right: 0)
@@ -167,6 +248,7 @@ final class CinemaMovieSearchVIewController: BaseViewController {
                         .disposed(by: cell.disposeBag)
                     cell.backgroundColor = .black
                     return cell
+                    
                 case .last:
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: LastEmptyCell.id) as? LastEmptyCell else {
                         fatalError()
@@ -178,7 +260,7 @@ final class CinemaMovieSearchVIewController: BaseViewController {
             }
             .disposed(by: disposeBag)
         
-        output.searchMovieList
+        output.outputData
             .drive(with: self, onNext: { vc, _ in
                 DispatchQueue.main.async {
                     vc.pagingFinishInput.onNext(())
@@ -206,5 +288,26 @@ extension CinemaMovieSearchVIewController {
             contentHeight: self.tableView.contentSize.height,
             boundsHeight: self.tableView.bounds.height
         )
+    }
+}
+
+extension CinemaMovieSearchVIewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        switch searchViewModel.currentMode.value {
+        case .suggestion:
+            let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: SuggestionHeaderView.id) as! SuggestionHeaderView
+            return headerView
+        case .searchResult:
+            return nil
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        switch searchViewModel.currentMode.value {
+        case .suggestion:
+            return 50
+        case .searchResult:
+            return 0
+        }
     }
 }

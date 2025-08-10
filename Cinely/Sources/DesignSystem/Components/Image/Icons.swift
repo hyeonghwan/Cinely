@@ -24,4 +24,7 @@ enum Icons {
     static let checkmark = UIImage(systemName: "checkmark")
     static let warning = UIImage(systemName: "exclamationmark.triangle")
     static let clockwise = UIImage(systemName: "arrow.clockwise")
+    static let clock = UIImage(systemName: "clock")
+    static let keyboardDown = UIImage(systemName: "keyboard.chevron.compact.down")
 }
+

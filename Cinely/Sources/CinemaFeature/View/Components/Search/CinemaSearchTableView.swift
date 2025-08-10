@@ -14,6 +14,10 @@ typealias CinemaEmptyCell = CinemaSearchTableView.CinemaEmptyCell
 final class CinemaSearchTableView: BaseTableView {
     override func addAttributes() {
         self.register(
+            RecentSearchCell.self,
+            forCellReuseIdentifier: RecentSearchCell.id
+        )
+        self.register(
             CinemaSearchCell.self,
             forCellReuseIdentifier: CinemaSearchCell.id
         )
@@ -28,6 +32,10 @@ final class CinemaSearchTableView: BaseTableView {
         self.register(
             LastEmptyCell.self,
             forCellReuseIdentifier: LastEmptyCell.id
+        )
+        self.register(
+            SuggestionHeaderView.self,
+            forHeaderFooterViewReuseIdentifier: SuggestionHeaderView.id
         )
     }
 }
