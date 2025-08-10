@@ -217,6 +217,12 @@ final class CinemaMovieSearchVIewController: BaseViewController {
                     cell.backgroundColor = .black
                     return cell
                     
+                case .emptySearchHistory:
+                    guard let cell = tableView.dequeueReusableCell(withIdentifier: RecentSearchEmptyTableViewCell.id) as? RecentSearchEmptyTableViewCell else { return UITableViewCell() }
+                    cell.selectionStyle = .none
+                    cell.backgroundColor = .black
+                    return cell
+                    
                 case let .movie(model):
                     guard let cell = tableView.dequeueReusableCell(withIdentifier: CinemaSearchCell.id) as? CinemaSearchCell else {
                         fatalError()

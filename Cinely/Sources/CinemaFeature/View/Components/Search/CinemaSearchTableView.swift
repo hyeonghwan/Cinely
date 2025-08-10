@@ -37,6 +37,10 @@ final class CinemaSearchTableView: BaseTableView {
             SuggestionHeaderView.self,
             forHeaderFooterViewReuseIdentifier: SuggestionHeaderView.id
         )
+        self.register(
+            RecentSearchEmptyTableViewCell.self,
+            forCellReuseIdentifier: RecentSearchEmptyTableViewCell.id
+        )
     }
 }
 
