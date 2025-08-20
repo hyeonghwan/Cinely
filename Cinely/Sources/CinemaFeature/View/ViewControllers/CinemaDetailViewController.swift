@@ -396,10 +396,12 @@ extension CinemaDetailViewController {
             self.pageControlIndex
                 .distinctUntilChanged()
                 .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+                .withUnretained(self)
+                .filter { fetcher, currentPage in
+                    currentPage + fetcher.priorBatchStartIndex >= fetcher.lastPage
+                }
                 .subscribe(with: self, onNext: { fetcher, currentPage in
-                    if currentPage + fetcher.priorBatchStartIndex >= fetcher.lastPage {
-                        fetcher.prefetchNextBatch(batchIndex: fetcher.lastPage + 1)
-                    }
+                    fetcher.prefetchNextBatch(batchIndex: fetcher.lastPage + 1)
                 })
                 .disposed(by: disposeBag)
         }
